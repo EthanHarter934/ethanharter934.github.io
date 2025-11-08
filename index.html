@@ -18,12 +18,57 @@
       <h1>Ethan Harter</h1>
       <p>Computer Science Student | AI Focus</p>
       <p>Oregon State University</p>
-      <a href="mailto:hartere@oregonstate.edu">hartere@oregonstate.edu</a>
-      <a href="tel:+15037818612">(503) 781-8612</a>
-      <a href="https://linkedin.com/in/ethan-harter236" target="_blank"
-        >LinkedIn</a
-      >
-      <a href="https://github.com/EthanHarter934" target="_blank">GitHub</a>
+
+      <!-- table of contents that get highlighted depending on scroll position -->
+      <nav class="table-of-contents">
+        <a href="#education">Education</a>
+        <a href="#skills">Skills & Tools</a>
+        <a href="#experience">Experience</a>
+        <a href="#projects">Projects</a>
+        <a href="#awards">Awards</a>
+        <a href="#extracurriculars">Extracurriculars</a>
+      </nav>
+      <!-- javascript -->
+      <script>
+        function scrollIntoViewWithOffset(selector, offset) {
+          const element = document.querySelector(selector);
+          var headerOffset = 45;
+          var elementPosition = element.getBoundingClientRect().top;
+          var container = document.querySelector('.main');
+          var offsetPosition = elementPosition - headerOffset + container.scrollTop;
+
+          container.scrollTo({
+              top: offsetPosition,
+              behavior: "smooth"
+          });
+        }
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+          anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            // Get the target element using the anchor's href
+            const targetId = this.getAttribute('href');
+
+            // Scroll to that element with the offset
+            scrollIntoViewWithOffset(targetId, 100);
+          });
+        });
+      </script>
+
+      <div class="contact-bar">
+        <a href="mailto:hartere@oregonstate.edu">
+          <img src="email-icon.png" alt="Email" />
+        </a>
+        <a href="https://linkedin.com/in/ethan-harter236" target="_blank">
+          <img src="linkedin-icon.png" alt="LinkedIn" />
+        </a>
+        <a href="https://github.com/EthanHarter934" target="_blank">
+          <img src="github-icon.png" alt="GitHub" />
+        </a>
+      </div>
+
+      </div>
     </div>
 
     <div class="main">
@@ -32,7 +77,7 @@
         <div class="section-item">
           <h3>Oregon State University</h3>
           <p>
-            Bachelor’s in Computer Science, focus in AI | GPA: 3.98 | Expected
+            Bachelor's in Computer Science, focus in AI | GPA: 3.98 | Expected
             June 2027
           </p>
           <p>
@@ -44,21 +89,61 @@
 
       <section id="skills">
         <h2>Technical Skills & Tools</h2>
-        <div class="section-item">
+
+        <div class="skills-section-item">
           <h3>Languages:</h3>
-          <p>Python, JavaScript, HTML/CSS, SQL, C++, C#, C, Assembly, R</p>
+          <div class="scrolling-container">
+            <ul class="right-to-left">
+              <li>Python</li>
+              <li>JavaScript</li>
+              <li>HTML/CSS</li>
+              <li>SQL</li>
+              <li>C++</li>
+              <li>C#</li>
+              <li>C</li>
+              <li>Assembly</li>
+              <li>R</li>
+              <li>Python</li>
+              <li>JavaScript</li>
+              <li>HTML/CSS</li>
+              <li>SQL</li>
+              <li>C++</li>
+              <li>C#</li>
+              <li>C</li>
+              <li>Assembly</li>
+              <li>R</li>
+            </ul>
+          </div>
+        </div>
+        <div class="skills-section-item">
           <h3>Tools:</h3>
-          <p>
-            BERT, React, Node.js, Linux SSH Servers, MySQL, GitHub, VSCode,
-            Unity
-          </p>
+          <div class="scrolling-container">
+            <ul class="left-to-right">
+              <li>BERT</li>
+              <li>React</li>
+              <li>Node.js</li>
+              <li>Linux SSH Servers</li>
+              <li>MySQL</li>
+              <li>GitHub</li>
+              <li>VSCode</li>
+              <li>Unity</li>
+              <li>BERT</li>
+              <li>React</li>
+              <li>Node.js</li>
+              <li>Linux SSH Servers</li>
+              <li>MySQL</li>
+              <li>GitHub</li>
+              <li>VSCode</li>
+              <li>Unity</li>
+            </ul>
+          </div>
         </div>
       </section>
 
       <section id="experience">
         <h2>Experience</h2>
         <div class="section-item">
-          <h3>Bonneville Power Administration – ASE Internship</h3>
+          <h3>Bonneville Power Administration - ASE Internship</h3>
           <p>June 2021 - August 2021</p>
           <ul>
             <li>Redesigned 30+ animations for technical training materials</li>
