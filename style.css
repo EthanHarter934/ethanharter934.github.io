@@ -359,6 +359,11 @@ ul li {
 @media (max-width: 1250px) {
   html, body {
     height: auto;
+    background: radial-gradient(circle at top left, var(--primary-color), var(--background-color));
+    background-size: 160% 160%;
+    background-repeat: no-repeat;
+    background-position: top left;
+    background-attachment: fixed;
   }
 
   body {
