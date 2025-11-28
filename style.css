@@ -13,18 +13,38 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   font-family: "Nobile", sans-serif;
   font-weight: 400;
   font-style: normal;
-  background: radial-gradient(circle at top left, var(--primary-color), var(--background-color));
+  background: radial-gradient(
+    circle at top left,
+    var(--primary-color),
+    var(--background-color)
+  );
 }
 
 body {
   display: flex;
   min-height: 100vh;
+}
+
+html,
+body,
+.main {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.main::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 /* Sidebar */
@@ -218,12 +238,18 @@ ul li {
 
 .scrolling-container {
   /* apply fading effect on both sides */
-  mask: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+  mask: linear-gradient(
+    to right,
+    transparent,
+    black 20%,
+    black 80%,
+    transparent
+  );
 }
 
 @keyframes scrolling-left {
   to {
-    transform: translate(-50%)
+    transform: translate(-50%);
   }
 }
 
@@ -361,9 +387,14 @@ ul li {
     padding: 0 !important;
   }
 
-  html, body {
+  html,
+  body {
     height: auto;
-    background: radial-gradient(circle at top left, var(--primary-color), var(--background-color));
+    background: radial-gradient(
+      circle at top left,
+      var(--primary-color),
+      var(--background-color)
+    );
     background-size: 160% 160%;
     background-repeat: no-repeat;
     background-position: top left;
@@ -371,7 +402,11 @@ ul li {
   }
 
   body {
-    background: radial-gradient(circle at top left, var(--primary-color), var(--background-color));
+    background: radial-gradient(
+      circle at top left,
+      var(--primary-color),
+      var(--background-color)
+    );
     flex-direction: column;
     overflow-y: auto;
   }
