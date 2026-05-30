@@ -8,30 +8,51 @@ const backendRoot = join(__dirname, '..');
 const outDir = join(backendRoot, 'dist-lambda');
 const zipPath = join(backendRoot, 'lambda.zip');
 
-console.log('Cleaning dist-lambda...');
-rmSync(outDir, { recursive: true, force: true });
-mkdirSync(outDir, { recursive: true });
+async function main() {
+  console.log('Cleaning dist-lambda...');
+  rmSync(outDir, { recursive: true, force: true });
 
-console.log('Copying source files...');
-cpSync(join(backendRoot, 'package.json'), join(outDir, 'package.json'));
-cpSync(join(backendRoot, 'lambda'), join(outDir, 'lambda'), { recursive: true });
-cpSync(join(backendRoot, 'mcp-server'), join(outDir, 'mcp-server'), { recursive: true });
+  // Small delay on Windows to ensure file handles are released
+  if (process.platform === 'win32') {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
 
-console.log('Installing production dependencies (this may take a minute)...');
-execSync('npm install --omit=dev', { cwd: outDir, stdio: 'inherit' });
+  mkdirSync(outDir, { recursive: true });
 
-console.log('Creating lambda.zip (this may take 1–2 minutes on Windows)...');
-if (existsSync(zipPath)) rmSync(zipPath);
+  console.log('Copying source files...');
 
-if (process.platform === 'win32') {
-  const psZipPath = zipPath.replace(/'/g, "''");
-  const psOutDir = outDir.replace(/'/g, "''");
-  execSync(
-    `powershell -NoProfile -Command "Compress-Archive -Path '${psOutDir}\\*' -DestinationPath '${psZipPath}' -CompressionLevel Fastest"`,
-    { stdio: 'inherit' },
-  );
-} else {
-  execSync(`cd "${outDir}" && zip -r "${zipPath}" .`, { stdio: 'inherit' });
+  // Use shell commands to avoid Unicode path issues on Windows
+  if (process.platform === 'win32') {
+    execSync(`xcopy "${join(backendRoot, 'package.json')}" "${outDir}\\" /Y`, { stdio: 'inherit' });
+    execSync(`xcopy "${join(backendRoot, 'lambda')}" "${outDir}\\lambda\\" /S /I /Y`, { stdio: 'inherit' });
+    execSync(`xcopy "${join(backendRoot, 'mcp-server')}" "${outDir}\\mcp-server\\" /S /I /Y`, { stdio: 'inherit' });
+  } else {
+    cpSync(join(backendRoot, 'package.json'), join(outDir, 'package.json'));
+    cpSync(join(backendRoot, 'lambda'), join(outDir, 'lambda'), { recursive: true });
+    cpSync(join(backendRoot, 'mcp-server'), join(outDir, 'mcp-server'), { recursive: true });
+  }
+
+  console.log('Installing production dependencies (this may take a minute)...');
+  execSync('npm install --omit=dev', { cwd: outDir, stdio: 'inherit' });
+
+  console.log('Creating lambda.zip (this may take 1–2 minutes on Windows)...');
+
+  if (process.platform === 'win32') {
+    const psZipPath = zipPath.replace(/'/g, "''");
+    const psOutDir = outDir.replace(/'/g, "''");
+    execSync(
+      `powershell -NoProfile -Command "Compress-Archive -Path '${psOutDir}\\*' -DestinationPath '${psZipPath}' -CompressionLevel Fastest -Force"`,
+      { stdio: 'inherit' },
+    );
+  } else {
+    if (existsSync(zipPath)) rmSync(zipPath);
+    execSync(`cd "${outDir}" && zip -r "${zipPath}" .`, { stdio: 'inherit' });
+  }
+
+  console.log(`Lambda package created: ${zipPath}`);
 }
 
-console.log(`Lambda package created: ${zipPath}`);
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
