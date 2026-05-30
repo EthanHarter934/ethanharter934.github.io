@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Education from '../components/Education';
 import Skills from '../components/Skills';
@@ -12,21 +12,32 @@ import useScrollToSection from '../hooks/useScrollToSection';
 
 export default function Home() {
   const mainRef = useRef(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const { handleNavClick } = useScrollToSection(mainRef);
+
+  const handleSidebarNavClick = (event, href) => {
+    setIsChatOpen(false);
+    handleNavClick(event, href);
+  };
 
   return (
     <>
-      <Sidebar onNavClick={handleNavClick} />
-      <div className="main" ref={mainRef}>
-        <Education />
-        <Skills />
-        <Experience />
-        <Projects />
-        <Awards />
-        <Extracurriculars />
-        <ContactBar />
+      <Sidebar
+        onNavClick={handleSidebarNavClick}
+        onChatClick={() => setIsChatOpen((open) => !open)}
+      />
+      <div className={`main ${isChatOpen ? 'main-chat-open' : ''}`} ref={mainRef}>
+        <div className={`main-content ${isChatOpen ? 'main-content-hidden' : ''}`}>
+          <Education />
+          <Skills />
+          <Experience />
+          <Projects />
+          <Awards />
+          <Extracurriculars />
+          <ContactBar />
+        </div>
+        {isChatOpen && <ChatWidget />}
       </div>
-      <ChatWidget />
     </>
   );
 }

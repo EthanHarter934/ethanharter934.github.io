@@ -32,8 +32,8 @@ export const education = {
 };
 
 export const skills = {
-  languages: ['Python', 'JavaScript', 'HTML/CSS', 'SQL', 'C++', 'C#', 'C', 'Assembly', 'R'],
-  tools: ['BERT', 'React', 'Node.js', 'Linux SSH Servers', 'MySQL', 'GitHub', 'VSCode', 'Unity'],
+  languages: ['Python', 'JavaScript', 'HTML/CSS', 'SQL', 'C++', 'C#', 'C', 'Assembly', 'R', 'Java', 'TypeScript'],
+  tools: ['BERT', 'React', 'Node.js', 'Linux SSH Servers', 'MySQL', 'GitHub', 'VSCode', 'Unity', 'AWS', 'Docker', 'FastAPI'],
 };
 
 export const experience = [

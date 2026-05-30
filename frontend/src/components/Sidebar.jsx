@@ -1,6 +1,6 @@
 import { profile, navLinks, contactLinks } from '../data/portfolio';
 
-export default function Sidebar({ onNavClick }) {
+export default function Sidebar({ onNavClick, onChatClick }) {
   return (
     <div className="sidebar">
       <img src={profile.photo} alt={profile.name} />
@@ -19,6 +19,11 @@ export default function Sidebar({ onNavClick }) {
           </a>
         ))}
       </nav>
+
+      <button type="button" className="sidebar-chat-button" onClick={onChatClick}>
+        <span className="sidebar-chat-button-icon">✦</span>
+        <span className="sidebar-chat-button-text">Chat with AI</span>
+      </button>
 
       <div className="contact-bar">
         {contactLinks.map((link) => (

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import styles from './ChatWidget.module.css';
 
 const STORAGE_KEY = 'portfolio-chat-messages';
@@ -26,7 +27,6 @@ function trimForApi(messages) {
 }
 
 export default function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState(loadStoredMessages);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,11 +42,11 @@ export default function ChatWidget() {
   }, [messages, loading]);
 
   useEffect(() => {
-    if (!isOpen || greetedRef.current || messages.length > 0) return;
+    if (greetedRef.current || messages.length > 0) return;
 
     greetedRef.current = true;
     setMessages([{ role: 'assistant', content: GREETING }]);
-  }, [isOpen, messages.length]);
+  }, [messages.length]);
 
   const handleSend = async (event) => {
     event.preventDefault();
@@ -86,56 +86,53 @@ export default function ChatWidget() {
 
   return (
     <div className={styles.chatWidget}>
-      {isOpen && (
-        <div className={styles.drawer}>
-          <div className={styles.header}>Portfolio Assistant</div>
-          <div className={styles.messages}>
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`${styles.message} ${
-                  message.role === 'user' ? styles.userMessage : styles.assistantMessage
-                }`}
-              >
-                {message.content}
-              </div>
-            ))}
-            {loading && (
-              <div className={`${styles.message} ${styles.assistantMessage} ${styles.typing}`}>
-                <span />
-                <span />
-                <span />
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+      <div className={styles.drawer}>
+        <div className={styles.header}>
+          <div className={styles.headerText}>
+            <div className={styles.title}>Portfolio Assistant</div>
+            <div className={styles.subtitle}>Ask about Ethan&apos;s work, skills, or projects.</div>
           </div>
-          <form className={styles.inputArea} onSubmit={handleSend}>
-            <input
-              type="text"
-              className={styles.input}
-              placeholder="Ask about my experience..."
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              disabled={loading}
-            />
-            <button
-              type="submit"
-              className={styles.sendButton}
-              disabled={!input.trim() || loading}
-            >
-              Send
-            </button>
-          </form>
         </div>
-      )}
-      <button
-        type="button"
-        className={styles.toggleButton}
-        onClick={() => setIsOpen((open) => !open)}
-        aria-label={isOpen ? 'Close chat' : 'Open chat'}
-      >
-        💬
-      </button>
+        <div className={styles.messages}>
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`${styles.message} ${
+                message.role === 'user' ? styles.userMessage : styles.assistantMessage
+              }`}
+            >
+              {message.role === 'assistant' ? (
+                <div className={styles.markdown}>
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
+              ) : (
+                message.content
+              )}
+            </div>
+          ))}
+          {loading && (
+            <div className={`${styles.message} ${styles.assistantMessage} ${styles.typing}`}>
+              <span />
+              <span />
+              <span />
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+        <form className={styles.inputArea} onSubmit={handleSend}>
+          <input
+            type="text"
+            className={styles.input}
+            placeholder="Ask me anything about Ethan..."
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            disabled={loading}
+          />
+          <button type="submit" className={styles.sendButton} disabled={!input.trim() || loading}>
+            ↑
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
