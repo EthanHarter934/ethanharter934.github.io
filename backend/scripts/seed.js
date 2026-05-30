@@ -125,9 +125,9 @@ const items = [
     { name: 'C', category: 'language', proficiencyLevel: 'intermediate', yearsOfExperience: 2 },
     { name: 'Assembly', category: 'language', proficiencyLevel: 'beginner', yearsOfExperience: 1 },
     { name: 'R', category: 'language', proficiencyLevel: 'beginner', yearsOfExperience: 1 },
-  ].map((skill) => ({
+  ].map((skill, idx) => ({
     PK: PROFILE_PK,
-    SK: `SKILL#${skill.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    SK: `SKILL#${skill.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-lang-${idx}`,
     type: 'skill',
     data: skill,
   })),
@@ -147,9 +147,9 @@ const items = [
       proficiencyLevel: 'intermediate',
       yearsOfExperience: 2,
     },
-  ].map((skill) => ({
+  ].map((skill, idx) => ({
     PK: PROFILE_PK,
-    SK: `SKILL#${skill.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    SK: `SKILL#${skill.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-tool-${idx}`,
     type: 'skill',
     data: skill,
   })),
