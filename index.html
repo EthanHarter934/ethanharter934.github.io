@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>My Portfolio</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,6 +18,25 @@
       <h1>Ethan Harter</h1>
       <p>Computer Science Student | AI Focus</p>
       <p>Oregon State University</p>
+
+      <button class="mobile-menu-icon" id="mobileMenuBtn" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="mobile-menu" id="mobileMenu">
+        <nav class="mobile-nav">
+          <a href="#education">Education</a>
+          <a href="#skills">Skills & Tools</a>
+          <a href="#experience">Experience</a>
+          <a href="#projects">Projects</a>
+          <a href="#awards">Awards</a>
+          <a href="#extracurriculars">Extracurriculars</a>
+        </nav>
+        <button class="mobile-chat-btn">Chat with AI</button>
+        <a href="/" class="mobile-home-link">Home</a>
+      </div>
 
       <nav class="table-of-contents">
         <a href="#education">Education</a>
@@ -51,8 +70,35 @@
 
             // Scroll to that element with the offset
             scrollIntoViewWithOffset(targetId, 100);
+
+            // Close mobile menu if open
+            const mobileMenu = document.getElementById("mobileMenu");
+            if (mobileMenu) {
+              mobileMenu.classList.remove("open");
+            }
           });
         });
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+        const mobileMenu = document.getElementById("mobileMenu");
+        if (mobileMenuBtn && mobileMenu) {
+          mobileMenuBtn.addEventListener("click", function () {
+            mobileMenu.classList.toggle("open");
+            mobileMenuBtn.classList.toggle("open");
+          });
+
+          // Close menu when clicking outside
+          document.addEventListener("click", function (event) {
+            if (
+              !mobileMenu.contains(event.target) &&
+              !mobileMenuBtn.contains(event.target)
+            ) {
+              mobileMenu.classList.remove("open");
+              mobileMenuBtn.classList.remove("open");
+            }
+          });
+        }
       </script>
 
       <div class="contact-bar">

@@ -26,7 +26,7 @@ function trimForApi(messages) {
     .slice(-MAX_MESSAGE_PAIRS * 2);
 }
 
-export default function ChatWidget() {
+export default function ChatWidget({ onClose }) {
   const [messages, setMessages] = useState(loadStoredMessages);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -92,6 +92,16 @@ export default function ChatWidget() {
             <div className={styles.title}>Portfolio Assistant</div>
             <div className={styles.subtitle}>Ask about Ethan&apos;s work, skills, or projects.</div>
           </div>
+          {onClose && (
+            <button
+              type="button"
+              className={styles.closeButton}
+              onClick={onClose}
+              aria-label="Close chat"
+            >
+              ✕
+            </button>
+          )}
         </div>
         <div className={styles.messages}>
           {messages.map((message, index) => (
