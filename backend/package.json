@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "dev": "node server.js",
     "seed": "node scripts/seed.js",
-    "package": "node scripts/package-lambda.js"
+    "package": "node scripts/package-lambda.js",
+    "test": "node mcp-server/tools/tools.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.830.0",

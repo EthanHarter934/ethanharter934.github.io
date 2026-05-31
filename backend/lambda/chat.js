@@ -1,5 +1,6 @@
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 import { toolDefinitions, callTool } from '../mcp-server/index.js';
+import { resolveModelId } from '../utils/modelId.js';
 
 // Haiku 4.5 is the cheapest current Claude model on Bedrock.
 // Newer models require a regional inference profile prefix (e.g. us., eu.).
@@ -12,22 +13,7 @@ Only answer questions relevant to the portfolio. If asked something unrelated, p
 Keep answers concise and conversational. Use tools to look up accurate, current information before answering.
 Never make up projects, skills, or experience that you haven't retrieved from the database.`;
 
-function resolveModelId() {
-  const modelId = process.env.BEDROCK_MODEL_ID || DEFAULT_MODEL;
-
-  if (/^(us|eu|apac|global)\./.test(modelId) || modelId.startsWith('arn:')) {
-    return modelId;
-  }
-
-  const region = process.env.AWS_REGION || 'us-east-1';
-  let prefix = 'us';
-  if (region.startsWith('eu-')) prefix = 'eu';
-  else if (region.startsWith('ap-')) prefix = 'apac';
-
-  return `${prefix}.${modelId}`;
-}
-
-const MODEL_ID = resolveModelId();
+const MODEL_ID = resolveModelId(process.env.BEDROCK_MODEL_ID, process.env.AWS_REGION);
 
 function toBedrockMessages(messages) {
   return messages.map((message) => ({
@@ -46,6 +32,7 @@ function extractAssistantText(message) {
 async function runConverseLoop(client, messages) {
   let bedrockMessages = toBedrockMessages(messages);
   let response;
+  const toolCallCache = new Map();
 
   while (true) {
     response = await client.send(
@@ -71,23 +58,35 @@ async function runConverseLoop(client, messages) {
 
       const { toolUseId, name, input } = block.toolUse;
 
-      try {
-        const result = await callTool(name, input || {});
-        toolResultBlocks.push({
-          toolResult: {
-            toolUseId,
-            content: [{ json: result }],
-          },
-        });
-      } catch (error) {
-        toolResultBlocks.push({
-          toolResult: {
-            toolUseId,
-            status: 'error',
-            content: [{ text: error.message }],
-          },
-        });
+      // Create cache key from tool name and input
+      const cacheKey = `${name}:${JSON.stringify(input || {})}`;
+      let result;
+
+      // Check if we've already called this tool with same input in this conversation
+      if (toolCallCache.has(cacheKey)) {
+        result = toolCallCache.get(cacheKey);
+      } else {
+        try {
+          result = await callTool(name, input || {});
+          toolCallCache.set(cacheKey, result);
+        } catch (error) {
+          toolResultBlocks.push({
+            toolResult: {
+              toolUseId,
+              status: 'error',
+              content: [{ text: error.message }],
+            },
+          });
+          continue;
+        }
       }
+
+      toolResultBlocks.push({
+        toolResult: {
+          toolUseId,
+          content: [{ json: result }],
+        },
+      });
     }
 
     bedrockMessages.push({

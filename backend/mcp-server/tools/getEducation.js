@@ -1,5 +1,6 @@
 import { QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME, PROFILE_PK } from '../db/dynamoClient.js';
+import { portfolioCache } from '../../utils/cache.js';
 
 export const definition = {
   name: 'getEducation',
@@ -11,21 +12,30 @@ export const definition = {
 };
 
 export async function handler() {
-  const result = await docClient.send(
-    new QueryCommand({
-      TableName: TABLE_NAME,
-      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
-      ExpressionAttributeValues: {
-        ':pk': PROFILE_PK,
-        ':skPrefix': 'EDUCATION#',
-      },
-    }),
-  );
+  // Check cache first
+  const cacheKey = 'education:all';
+  let education = portfolioCache.get(cacheKey);
 
-  const education = (result.Items || []).map((item) => ({
-    id: item.SK.replace('EDUCATION#', ''),
-    ...item.data,
-  }));
+  if (!education) {
+    const result = await docClient.send(
+      new QueryCommand({
+        TableName: TABLE_NAME,
+        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+        ExpressionAttributeValues: {
+          ':pk': PROFILE_PK,
+          ':skPrefix': 'EDUCATION#',
+        },
+      }),
+    );
+
+    education = (result.Items || []).map((item) => ({
+      id: item.SK.replace('EDUCATION#', ''),
+      ...item.data,
+    }));
+
+    // Cache for 5 minutes
+    portfolioCache.set(cacheKey, education);
+  }
 
   return { education, count: education.length };
 }

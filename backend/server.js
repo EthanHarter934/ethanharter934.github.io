@@ -1,39 +1,48 @@
 import 'dotenv/config';
 import express from 'express';
 import { chat } from './lambda/chat.js';
+import { validateChatRequest } from './middleware/validateChat.js';
+import { rateLimiter } from './middleware/rateLimiter.js';
+import { resolveModelId } from './utils/modelId.js';
+import { logger } from './utils/logger.js';
+import config, { validateConfig } from './config.js';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+validateConfig();
 
 function resolveModelIdForLog() {
-  const modelId = process.env.BEDROCK_MODEL_ID || 'anthropic.claude-haiku-4-5-20251001-v1:0';
-  if (/^(us|eu|apac|global)\./.test(modelId)) return modelId;
-  const region = process.env.AWS_REGION || 'us-east-1';
-  let prefix = 'us';
-  if (region.startsWith('eu-')) prefix = 'eu';
-  else if (region.startsWith('ap-')) prefix = 'apac';
-  return `${prefix}.${modelId}`;
+  return resolveModelId(config.bedrockModelId, config.awsRegion);
 }
 
 app.use(express.json());
 
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', rateLimiter, validateChatRequest, async (req, res) => {
   try {
     const { messages } = req.body;
 
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: 'messages array is required' });
-    }
+    logger.info('Chat request received', {
+      messageCount: messages.length,
+      lastMessage: messages[messages.length - 1]?.content?.substring(0, 50),
+    });
 
     const reply = await chat(messages);
+
+    logger.info('Chat response generated', {
+      responseLength: reply.length,
+    });
+
     res.json({ message: reply });
   } catch (error) {
-    console.error('POST /api/chat error:', error);
+    logger.error('Chat request failed', error, {
+      messageCount: req.body?.messages?.length,
+    });
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Portfolio backend listening on http://localhost:${PORT}`);
-  console.log(`Bedrock model: ${resolveModelIdForLog()}`);
+app.listen(config.port, () => {
+  logger.info('Server started', {
+    port: config.port,
+    bedrockModel: resolveModelIdForLog(),
+  });
 });
