@@ -24,12 +24,16 @@ async function main() {
   // Use shell commands to avoid Unicode path issues on Windows
   if (process.platform === 'win32') {
     execSync(`xcopy "${join(backendRoot, 'package.json')}" "${outDir}\\" /Y`, { stdio: 'inherit' });
+    execSync(`xcopy "${join(backendRoot, 'config.js')}" "${outDir}\\" /Y`, { stdio: 'inherit' });
     execSync(`xcopy "${join(backendRoot, 'lambda')}" "${outDir}\\lambda\\" /S /I /Y`, { stdio: 'inherit' });
     execSync(`xcopy "${join(backendRoot, 'mcp-server')}" "${outDir}\\mcp-server\\" /S /I /Y`, { stdio: 'inherit' });
+    execSync(`xcopy "${join(backendRoot, 'utils')}" "${outDir}\\utils\\" /S /I /Y`, { stdio: 'inherit' });
   } else {
     cpSync(join(backendRoot, 'package.json'), join(outDir, 'package.json'));
+    cpSync(join(backendRoot, 'config.js'), join(outDir, 'config.js'));
     cpSync(join(backendRoot, 'lambda'), join(outDir, 'lambda'), { recursive: true });
     cpSync(join(backendRoot, 'mcp-server'), join(outDir, 'mcp-server'), { recursive: true });
+    cpSync(join(backendRoot, 'utils'), join(outDir, 'utils'), { recursive: true });
   }
 
   console.log('Installing production dependencies (this may take a minute)...');
