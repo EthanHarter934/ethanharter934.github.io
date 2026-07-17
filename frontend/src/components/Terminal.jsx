@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { key as keySfx, send as sendSfx } from '../utils/sfx';
 
 const ReactMarkdown = lazy(() => import('react-markdown'));
 
@@ -99,6 +100,7 @@ export default function Terminal() {
     event.preventDefault();
     const trimmed = input.trim();
     if (!trimmed || loading || !booted) return;
+    sendSfx();
 
     const userMessage = { role: 'user', content: trimmed };
     const nextMessages = [...messages, userMessage];
@@ -205,6 +207,9 @@ export default function Terminal() {
           aria-label="Ask M-1, Ethan's AI assistant, a question"
           value={input}
           onChange={(event) => setInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key.length === 1 || event.key === 'Backspace') keySfx();
+          }}
           disabled={!booted || loading}
           autoComplete="off"
           spellCheck="false"
