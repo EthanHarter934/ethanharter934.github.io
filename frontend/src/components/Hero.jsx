@@ -45,7 +45,7 @@ export default function Hero() {
       el.style.position = 'fixed';
       el.style.left = '0';
       el.style.top = '0';
-      el.style.zIndex = 390;
+      el.style.zIndex = 5; // behind the terminal so the pile can't cover the chat
       el.classList.add('smashed-piece');
       const body = addBody({
         el,

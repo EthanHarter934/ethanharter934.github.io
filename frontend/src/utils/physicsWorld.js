@@ -138,7 +138,10 @@ function resolvePair(a, b) {
     }
   } else {
     const dir = a.y + a.h / 2 < b.y + b.h / 2 ? -1 : 1;
-    const aShare = aKin ? 0 : bKin ? 1 : 0.5;
+    // stacks settle crisply: the upper body takes the whole separation,
+    // the floor (or the pile) anchors the lower one
+    let aShare = aKin ? 0 : bKin ? 1 : dir === -1 ? 1 : 0;
+    if (bKin) aShare = 1;
     a.y += dir * py * aShare;
     b.y -= dir * py * (1 - aShare);
     const rel = a.vy - b.vy;

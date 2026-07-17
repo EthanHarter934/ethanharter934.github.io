@@ -482,6 +482,12 @@ img {
   -webkit-user-select: none;
 }
 
+/* the terminal paints over the smashed pile (but under the fixed nav) */
+.hero-terminal {
+  position: relative;
+  z-index: 10;
+}
+
 .hero-eyebrow {
   font-family: var(--font-mono);
   font-size: 0.78rem;
