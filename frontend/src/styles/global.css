@@ -330,6 +330,8 @@ img {
   height: 100%;
   overflow: visible;
   pointer-events: none;
+  /* on the root svg too: Chromium ignores touch-action on inner svg elements */
+  touch-action: none;
 }
 
 .chain-wrap svg .chain-hit {

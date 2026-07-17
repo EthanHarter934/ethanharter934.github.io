@@ -207,6 +207,12 @@ export default function PullChain({ onToggle, theme }) {
       if (dragging) drag = svgPoint(e);
     }
 
+    // touch backstop: some browsers ignore touch-action on svg children and
+    // try to scroll mid-pull, cancelling the pointer stream
+    function onTouchMove(e) {
+      if (dragging && e.cancelable) e.preventDefault();
+    }
+
     function onUp() {
       if (!dragging) return;
       dragging = false;
@@ -222,12 +228,14 @@ export default function PullChain({ onToggle, theme }) {
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     window.addEventListener('pointercancel', onUp);
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
 
     const removeListeners = () => {
       hit.removeEventListener('pointerdown', onDown);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
+      window.removeEventListener('touchmove', onTouchMove);
     };
 
     if (reduce) {
