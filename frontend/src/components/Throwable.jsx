@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ensureAudio, grab, thud } from '../utils/sfx';
 
 // Wraps a button or link so you can pick it up and throw it.
 // Thrown elements get gravity, bounce off the viewport edges, and
@@ -126,15 +127,18 @@ export default function Throwable({ children, hint }) {
 
       if (p.x < EDGE) {
         p.x = EDGE;
+        thud(p.vx);
         p.vx = -p.vx * RESTITUTION;
       } else if (p.x > rightWall) {
         p.x = rightWall;
+        thud(p.vx);
         p.vx = -p.vx * RESTITUTION;
       }
 
       if (p.y >= floor) {
         p.y = floor;
         if (Math.abs(p.vy) > 220) {
+          thud(p.vy);
           p.vy = -p.vy * RESTITUTION;
         } else {
           p.vy = 0;
@@ -187,6 +191,7 @@ export default function Throwable({ children, hint }) {
     p.grabDY = event.clientY - rect.top;
     p.samples = [{ t: event.timeStamp, x: event.clientX, y: event.clientY }];
     stopLoop();
+    ensureAudio();
   };
 
   // drag moves/ups live on window: a fast flick outruns pointer events on
@@ -207,6 +212,7 @@ export default function Throwable({ children, hint }) {
           return;
         p.started = true;
         p.suppressClick = true;
+        grab();
         if (hint) dismissHint();
         if (!p.free) {
           const rect = bodyRef.current.getBoundingClientRect();
