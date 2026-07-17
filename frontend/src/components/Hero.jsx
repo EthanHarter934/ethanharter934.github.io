@@ -54,15 +54,17 @@ export default function Hero() {
                   See the work <span aria-hidden="true">→</span>
                 </a>
               </Throwable>
-              <a
-                href="/CS_AI Resume.pdf"
-                target="_blank"
-                rel="noreferrer"
-                className="btn-quiet link-sweep"
-                onClick={() => uiClick()}
-              >
-                résumé ↗
-              </a>
+              <Throwable>
+                <a
+                  href="/CS_AI Resume.pdf"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-quiet link-sweep"
+                  onClick={() => uiClick()}
+                >
+                  résumé ↗
+                </a>
+              </Throwable>
             </div>
           </Reveal>
         </div>
