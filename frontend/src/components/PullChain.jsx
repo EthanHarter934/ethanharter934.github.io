@@ -1,28 +1,75 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Physical pull-chain light switch. A verlet rope hangs from under
-// the navbar; drag the handle down past the threshold and it clicks
-// (Web Audio) and flips the theme. Keyboard users get a hidden
+// the navbar; drag the handle down past the threshold and the lights
+// flip with a mechanical click. A second, softer click plays when you
+// let go and the chain snaps back. Keyboard users get a hidden
 // focusable button over the same spot.
 
 const SEGMENTS = 9;
 const SEG_LEN = 12;
 const ANCHOR_X = 45;
 const PULL_THRESHOLD = 40;
+const HINT_RADIUS = 150;
 
+// a woody, mechanical "tk": a filtered noise tick plus a low thump.
+// downstroke = the switch engaging; release = the chain snapping home.
 function playClick(ctx, downstroke) {
   const t = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = 'square';
-  osc.frequency.setValueAtTime(downstroke ? 2100 : 1500, t);
-  osc.frequency.exponentialRampToValueAtTime(downstroke ? 800 : 550, t + 0.03);
-  gain.gain.setValueAtTime(0.09, t);
-  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(t);
-  osc.stop(t + 0.06);
+
+  const len = Math.floor(ctx.sampleRate * 0.012);
+  const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < len; i += 1) {
+    data[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 2;
+  }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const band = ctx.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = downstroke ? 2400 : 1800;
+  band.Q.value = 1.1;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(downstroke ? 0.55 : 0.32, t);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+  noise.connect(band);
+  band.connect(noiseGain);
+  noiseGain.connect(ctx.destination);
+  noise.start(t);
+
+  const thump = ctx.createOscillator();
+  thump.type = 'sine';
+  thump.frequency.setValueAtTime(downstroke ? 180 : 140, t);
+  thump.frequency.exponentialRampToValueAtTime(65, t + 0.045);
+  const thumpGain = ctx.createGain();
+  thumpGain.gain.setValueAtTime(downstroke ? 0.16 : 0.1, t);
+  thumpGain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+  thump.connect(thumpGain);
+  thumpGain.connect(ctx.destination);
+  thump.start(t);
+  thump.stop(t + 0.07);
+}
+
+function HintArrow() {
+  return (
+    <svg width="16" height="20" viewBox="0 0 16 20" fill="none" aria-hidden="true">
+      <path
+        d="M10.5 18.5C8.5 14.5 7.5 10 8.5 3.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M4.5 7.5L8.5 3l4 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
 }
 
 export default function PullChain({ onToggle, theme }) {
@@ -33,10 +80,43 @@ export default function PullChain({ onToggle, theme }) {
   const hitRef = useRef(null);
   const audioRef = useRef(null);
   const onToggleRef = useRef(onToggle);
+  const dismissHintRef = useRef(() => {});
+  const [hintVisible, setHintVisible] = useState(false);
+  const [hintDismissed, setHintDismissed] = useState(false);
 
   useEffect(() => {
     onToggleRef.current = onToggle;
   }, [onToggle]);
+
+  useEffect(() => {
+    dismissHintRef.current = () => {
+      setHintDismissed(true);
+      setHintVisible(false);
+    };
+  }, []);
+
+  // reveal the hint when the cursor gets close to the handle
+  useEffect(() => {
+    if (hintDismissed) return undefined;
+    let raf = 0;
+    const onMove = (event) => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const hit = hitRef.current;
+        if (!hit) return;
+        const rect = hit.getBoundingClientRect();
+        const dx = event.clientX - (rect.left + rect.width / 2);
+        const dy = event.clientY - (rect.top + rect.height / 2);
+        setHintVisible(Math.hypot(dx, dy) < HINT_RADIUS);
+      });
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('pointermove', onMove);
+    };
+  }, [hintDismissed]);
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -77,13 +157,12 @@ export default function PullChain({ onToggle, theme }) {
       return audioRef.current;
     }
 
+    // the switch engages: theme flips with the first click
     function fireToggle() {
       const ctx = ensureAudio();
-      if (ctx) {
-        playClick(ctx, true);
-        setTimeout(() => playClick(ctx, false), 70);
-      }
+      if (ctx) playClick(ctx, true);
       onToggleRef.current?.();
+      dismissHintRef.current();
     }
 
     function render() {
@@ -140,9 +219,9 @@ export default function PullChain({ onToggle, theme }) {
         }
       }
 
-      // pull detection while dragging
-      const end = pts[pts.length - 1];
-      if (dragging && !fired && end.y - restY > PULL_THRESHOLD) {
+      // pull detection while dragging: the pointer is the honest signal,
+      // since the rope itself only stretches a little past rest
+      if (dragging && !fired && drag.y - restY > PULL_THRESHOLD) {
         fired = true;
         fireToggle();
       }
@@ -180,9 +259,15 @@ export default function PullChain({ onToggle, theme }) {
     }
 
     function onUp() {
+      if (!dragging) return;
       dragging = false;
-      fired = false;
       svg.classList.remove('grabbing');
+      if (fired) {
+        // the chain snaps back home: softer second click
+        const ctx = audioRef.current;
+        if (ctx) setTimeout(() => playClick(ctx, false), 90);
+      }
+      fired = false;
     }
 
     hit.addEventListener('pointerdown', onDown);
@@ -231,8 +316,13 @@ export default function PullChain({ onToggle, theme }) {
         audioRef.current = null;
       }
     }
-    if (audioRef.current) playClick(audioRef.current, true);
+    const ctx = audioRef.current;
+    if (ctx) {
+      playClick(ctx, true);
+      setTimeout(() => playClick(ctx, false), 120);
+    }
     onToggle?.();
+    dismissHintRef.current();
   };
 
   return (
@@ -248,6 +338,12 @@ export default function PullChain({ onToggle, theme }) {
         <circle ref={handleRef} className="chain-handle" r="7.5" />
         <circle ref={hitRef} className="chain-hit" r="21" />
       </svg>
+      {!hintDismissed && (
+        <span className={`chain-hint ${hintVisible ? 'show' : ''}`} aria-hidden="true">
+          <HintArrow />
+          pull me
+        </span>
+      )}
       <button
         type="button"
         className="chain-a11y"

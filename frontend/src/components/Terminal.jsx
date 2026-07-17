@@ -9,11 +9,11 @@ const STORAGE_KEY = 'portfolio-terminal-messages';
 const MAX_MESSAGE_PAIRS = 10;
 const ERROR_MESSAGE = 'connection failed. the model is probably napping, try again in a bit.';
 const GREETING =
-  "hey, I'm the model trained on Ethan's portfolio. ask me about his projects, stack, classes, whatever.";
+  "hey, I'm Melchior-1 (M-1 for short), the model trained on Ethan's portfolio. ask me about his projects, stack, classes, whatever.";
 
 const BOOT_LINES = [
   { text: '$ boot --profile ethan_harter', cls: 'cmd' },
-  { text: '  vision ............. ok', cls: 'ok' },
+  { text: '  modeling ........... ok', cls: 'ok' },
   { text: '  language ........... ok', cls: 'ok' },
   { text: '  full-stack ......... ok', cls: 'ok' },
   { text: '  gpa 3.95 ........... verified', cls: 'dim' },
@@ -135,7 +135,7 @@ export default function Terminal() {
     <div className="term">
       <div className="term-bar">
         <i /><i /><i className="hot" />
-        <span className="term-name">session · ask ethan's model</span>
+        <span className="term-name">session · ask m-1</span>
         <span className="term-hint">enter to send</span>
       </div>
 
@@ -161,7 +161,7 @@ export default function Terminal() {
 
         {booted && messages.length === 0 && (
           <div className="term-msg">
-            <span className="who">eh&gt; </span>
+            <span className="who">m1&gt; </span>
             <span className="msg-text">{GREETING}</span>
           </div>
         )}
@@ -169,7 +169,7 @@ export default function Terminal() {
         {booted &&
           messages.map((message, index) => (
             <div key={index} className={`term-msg ${message.role === 'user' ? 'you' : ''}`}>
-              <span className="who">{message.role === 'user' ? 'you> ' : 'eh> '}</span>
+              <span className="who">{message.role === 'user' ? 'you> ' : 'm1> '}</span>
               {message.role === 'assistant' ? (
                 message.error ? (
                   <span className="ln err" style={{ display: 'inline' }}>{message.content}</span>
@@ -188,7 +188,7 @@ export default function Terminal() {
 
         {loading && (
           <div className="term-msg term-thinking">
-            <span className="who">eh&gt; </span>
+            <span className="who">m1&gt; </span>
             <span className="msg-text">thinking<span className="dots" /></span>
           </div>
         )}
@@ -202,7 +202,7 @@ export default function Terminal() {
           type="text"
           className="term-input"
           placeholder={booted ? 'ask about ethan…' : 'booting…'}
-          aria-label="Ask Ethan's AI assistant a question"
+          aria-label="Ask M-1, Ethan's AI assistant, a question"
           value={input}
           onChange={(event) => setInput(event.target.value)}
           disabled={!booted || loading}

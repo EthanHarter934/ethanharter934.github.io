@@ -1,6 +1,5 @@
 import { profile } from '../data/portfolio';
 import Reveal from './Reveal';
-import Magnetic from './Magnetic';
 import Terminal from './Terminal';
 import Throwable from './Throwable';
 
@@ -23,14 +22,14 @@ export default function Hero() {
 
           <Reveal delay={0.07} y={22}>
             <h1 className="hero-title">
-              I teach machines <span className="acc">to see.</span>
+              Turning ideas into <span className="acc">code I trust.</span>
             </h1>
           </Reveal>
 
           <Reveal delay={0.14} y={22}>
             <p className="hero-lede">
               I&apos;m <strong>Ethan Harter</strong>, a CS student at Oregon State who spends a lot of
-              time getting computers to recognize things. I&apos;ve entered two hackathons so far and{' '}
+              time building and training AI systems. I&apos;ve entered two hackathons so far and{' '}
               <span className="highlight">won first place at both</span>.
             </p>
           </Reveal>
@@ -48,12 +47,10 @@ export default function Hero() {
 
           <Reveal delay={0.28} y={18}>
             <div className="hero-ctas">
-              <Throwable>
-                <Magnetic>
-                  <a href="#work" className="btn-primary" onClick={handleWorkClick}>
-                    See the work <span aria-hidden="true">→</span>
-                  </a>
-                </Magnetic>
+              <Throwable hint="throw me">
+                <a href="#work" className="btn-primary" onClick={handleWorkClick}>
+                  See the work <span aria-hidden="true">→</span>
+                </a>
               </Throwable>
               <a
                 href="/CS_AI Resume.pdf"

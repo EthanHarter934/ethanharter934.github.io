@@ -1,6 +1,5 @@
 import { contactLinks, profile } from '../data/portfolio';
 import Reveal from './Reveal';
-import Magnetic from './Magnetic';
 import Throwable from './Throwable';
 import { SocialIcon } from './Icons';
 
@@ -23,17 +22,15 @@ export default function Footer() {
         <Reveal delay={0.16} y={18}>
           <p className="footer-sub">
             I&apos;m looking for internships and cool things to build in AI and software engineering.
-            If you&apos;re hiring, or just want to nerd out about computer vision, my inbox is open.
+            If you&apos;re hiring, or just want to nerd out about AI and machine learning, my inbox is open.
           </p>
         </Reveal>
 
-        <Reveal delay={0.24} y={16}>
+        <Reveal delay={0.24} y={16} className="footer-email-wrap">
           <Throwable>
-            <Magnetic>
-              <a href={`mailto:${profile.email}`} className="btn-primary footer-email">
-                {profile.email} <span aria-hidden="true">↗</span>
-              </a>
-            </Magnetic>
+            <a href={`mailto:${profile.email}`} className="btn-primary footer-email">
+              {profile.email} <span aria-hidden="true">↗</span>
+            </a>
           </Throwable>
         </Reveal>
 
