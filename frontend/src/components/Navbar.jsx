@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { navLinks, profile } from '../data/portfolio';
-import { click } from '../utils/sfx';
-
-const uiClick = () => click(true, 0.35);
+import { uiClick } from '../utils/sfx';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);

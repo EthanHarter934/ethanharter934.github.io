@@ -1,5 +1,5 @@
 import { contactLinks, profile } from '../data/portfolio';
-import { click } from '../utils/sfx';
+import { uiClick } from '../utils/sfx';
 import Reveal from './Reveal';
 import Throwable from './Throwable';
 import { SocialIcon } from './Icons';
@@ -32,7 +32,7 @@ export default function Footer() {
             <a
               href={`mailto:${profile.email}`}
               className="btn-primary footer-email"
-              onClick={() => click(true, 0.35)}
+              onClick={() => uiClick()}
             >
               {profile.email} <span aria-hidden="true">↗</span>
             </a>
@@ -50,7 +50,7 @@ export default function Footer() {
                   title={link.label}
                   target={link.href.startsWith('http') ? '_blank' : undefined}
                   rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
-                  onClick={() => click(true, 0.35)}
+                  onClick={() => uiClick()}
                 >
                   <SocialIcon kind={link.kind} />
                 </a>

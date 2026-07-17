@@ -18,10 +18,10 @@ function getCtx() {
 }
 
 // one mechanical sound: a bandpassed noise burst plus a pitched-down thump
-function mech({ freq, q = 1.1, noiseGain, noiseDur = 0.045, thumpFreq = 0, thumpGain = 0, thumpDur = 0.06 }) {
+function mech({ freq, q = 1.1, noiseGain, noiseDur = 0.045, thumpFreq = 0, thumpGain = 0, thumpDur = 0.06, delay = 0 }) {
   const c = getCtx();
   if (!c) return;
-  const t = c.currentTime;
+  const t = c.currentTime + delay;
 
   if (noiseGain > 0) {
     const len = Math.floor(c.sampleRate * 0.012);
@@ -77,13 +77,18 @@ export function click(downstroke = true, level = 1) {
   });
 }
 
-// soft tick when a throwable gets picked up
-export function grab() {
-  mech({ freq: 1500, noiseGain: 0.16, noiseDur: 0.03, thumpFreq: 120, thumpGain: 0.05, thumpDur: 0.04 });
+// deep quiet click for regular UI (nav links, buttons): thocky, not ticky
+export function uiClick() {
+  mech({ freq: 700, q: 0.9, noiseGain: 0.22, noiseDur: 0.04, thumpFreq: 100, thumpGain: 0.1, thumpDur: 0.055 });
 }
 
-// impact thump for throwable bounces; velocity in px/s.
-// quiet settle bounces stay silent, and impacts are rate-limited.
+// soft low tick when something gets picked up
+export function grab() {
+  mech({ freq: 600, q: 0.9, noiseGain: 0.16, noiseDur: 0.035, thumpFreq: 95, thumpGain: 0.07, thumpDur: 0.05 });
+}
+
+// impact for physics bodies; velocity in px/s. Thump-first so it reads as
+// weight, not a click. Silent below threshold, rate-limited.
 let lastThud = 0;
 export function thud(velocity) {
   const speed = Math.abs(velocity);
@@ -93,27 +98,63 @@ export function thud(velocity) {
   lastThud = now;
   const punch = Math.min(1, speed / 1600);
   mech({
-    freq: 900 + punch * 500,
-    q: 0.9,
-    noiseGain: 0.1 + punch * 0.3,
-    noiseDur: 0.05,
-    thumpFreq: 110 + punch * 70,
-    thumpGain: 0.08 + punch * 0.18,
-    thumpDur: 0.07,
+    freq: 400,
+    q: 0.7,
+    noiseGain: 0.04 + punch * 0.12,
+    noiseDur: 0.06,
+    thumpFreq: 70 + punch * 70,
+    thumpGain: 0.12 + punch * 0.26,
+    thumpDur: 0.09,
   });
 }
 
-// very quiet keystroke tick with a little random pitch so typing
+// quiet low keystroke tick with a little random pitch so typing
 // doesn't sound like a machine gun; rate-limited for key repeat
 let lastKey = 0;
 export function key() {
   const now = performance.now();
   if (now - lastKey < 34) return;
   lastKey = now;
-  mech({ freq: 2100 + Math.random() * 700, q: 1.4, noiseGain: 0.06, noiseDur: 0.025 });
+  mech({ freq: 1000 + Math.random() * 400, q: 1.2, noiseGain: 0.06, noiseDur: 0.03 });
 }
 
-// brighter little click for sending a chat message
+// deep double-thock for sending a chat message
 export function send() {
-  mech({ freq: 2800, noiseGain: 0.2, noiseDur: 0.04, thumpFreq: 200, thumpGain: 0.06, thumpDur: 0.05 });
+  mech({ freq: 650, q: 0.9, noiseGain: 0.18, noiseDur: 0.04, thumpFreq: 130, thumpGain: 0.1, thumpDur: 0.06 });
+  mech({ freq: 500, q: 0.9, noiseGain: 0.12, noiseDur: 0.045, thumpFreq: 110, thumpGain: 0.08, thumpDur: 0.07, delay: 0.06 });
+}
+
+// big soft whomp for the terminal expansion: low sweep + rumble
+export function whomp() {
+  const c = getCtx();
+  if (!c) return;
+  const t = c.currentTime;
+  const osc = c.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, t);
+  osc.frequency.exponentialRampToValueAtTime(50, t + 0.35);
+  const og = c.createGain();
+  og.gain.setValueAtTime(0.28, t);
+  og.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+  osc.connect(og);
+  og.connect(c.destination);
+  osc.start(t);
+  osc.stop(t + 0.42);
+
+  const len = Math.floor(c.sampleRate * 0.3);
+  const buffer = c.createBuffer(1, len, c.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < len; i += 1) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const noise = c.createBufferSource();
+  noise.buffer = buffer;
+  const lp = c.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 300;
+  const ng = c.createGain();
+  ng.gain.setValueAtTime(0.12, t);
+  ng.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+  noise.connect(lp);
+  lp.connect(ng);
+  ng.connect(c.destination);
+  noise.start(t);
 }
