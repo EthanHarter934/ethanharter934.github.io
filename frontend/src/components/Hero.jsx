@@ -74,7 +74,7 @@ export default function Hero() {
             <p className="op-text">
               <b>operator:</b> ethan harter · corvallis, or
               <br />
-              <b>uptime:</b> junior year · graduating june 2027
+              <b>uptime:</b> senior year · graduating june 2027
             </p>
           </div>
         </Reveal>
