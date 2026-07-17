@@ -10,6 +10,7 @@ import Background from '../components/Background';
 import Awards from '../components/Awards';
 import Beyond from '../components/Beyond';
 import Footer from '../components/Footer';
+import ResetPhysics from '../components/ResetPhysics';
 
 function getInitialTheme() {
   if (typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light') {
@@ -56,6 +57,7 @@ export default function Home() {
       </main>
 
       <Footer />
+      <ResetPhysics />
     </MotionConfig>
   );
 }

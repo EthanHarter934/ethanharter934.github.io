@@ -501,6 +501,31 @@ img {
   z-index: 10;
 }
 
+/* subtle corner button that undoes all the chaos */
+.physics-reset {
+  position: fixed;
+  right: 14px;
+  bottom: 12px;
+  z-index: 410;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.physics-reset:hover,
+.physics-reset:focus-visible {
+  opacity: 1;
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
 .hero-eyebrow {
   font-family: var(--font-mono);
   font-size: 0.78rem;

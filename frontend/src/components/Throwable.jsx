@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { addBody, beginDrag, onImpact } from '../utils/physicsWorld';
+import { addBody, beginDrag, onImpact, removeBody } from '../utils/physicsWorld';
 import { ensureAudio, grab, thud } from '../utils/sfx';
 
 // Wraps a button or link so you can pick it up and throw it.
@@ -59,6 +59,24 @@ const Throwable = forwardRef(function Throwable({ children, hint }, ref) {
 
   useEffect(() => {
     phys.current.reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }, []);
+
+  // the global reset button puts thrown elements back in the layout
+  useEffect(() => {
+    const onReset = () => {
+      const p = phys.current;
+      if (!p.free) return;
+      if (p.body) removeBody(p.body);
+      p.body = null;
+      p.free = false;
+      p.dragging = false;
+      p.started = false;
+      const el = bodyRef.current;
+      if (el) el.style.transform = '';
+      setFree(false);
+    };
+    window.addEventListener('eh:physics-reset', onReset);
+    return () => window.removeEventListener('eh:physics-reset', onReset);
   }, []);
 
   const dismissHint = () => {

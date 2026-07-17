@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { profile } from '../data/portfolio';
 import { ensureAudio, grab, uiClick, whomp } from '../utils/sfx';
-import { addBody, beginDrag, clearEdge, setEdge } from '../utils/physicsWorld';
+import { addBody, beginDrag, clearEdge, removeBody, setEdge } from '../utils/physicsWorld';
 import Reveal from './Reveal';
 import Terminal from './Terminal';
 import Throwable from './Throwable';
@@ -13,6 +13,39 @@ export default function Hero() {
   const primaryCtaRef = useRef(null);
   const resumeRef = useRef(null);
   const smashCleanupRef = useRef(null);
+
+  // global reset: rebuild the hero exactly as it was before the smash
+  useEffect(() => {
+    const onReset = () => {
+      const cleanup = smashCleanupRef.current;
+      if (cleanup) {
+        cleanup.abort.abort();
+        cleanup.bodies.forEach(removeBody);
+        for (const el of cleanup.pieces) {
+          for (const prop of [
+            'width',
+            'margin',
+            'position',
+            'left',
+            'top',
+            'z-index',
+            'transform',
+            'transform-origin',
+          ]) {
+            el.style.removeProperty(prop);
+          }
+          el.classList.remove('smashed-piece');
+        }
+        for (const el of cleanup.drops) el.classList.remove('word-fade');
+        smashCleanupRef.current = null;
+      }
+      clearEdge();
+      smashedRef.current = false;
+      setSmashed(false);
+    };
+    window.addEventListener('eh:physics-reset', onReset);
+    return () => window.removeEventListener('eh:physics-reset', onReset);
+  }, []);
 
   const handleWorkClick = (event) => {
     uiClick();
