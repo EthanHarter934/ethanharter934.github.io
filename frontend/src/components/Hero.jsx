@@ -12,6 +12,7 @@ export default function Hero() {
   const heroInnerRef = useRef(null);
   const primaryCtaRef = useRef(null);
   const resumeRef = useRef(null);
+  const smashCleanupRef = useRef(null);
 
   const handleWorkClick = (event) => {
     uiClick();
@@ -32,14 +33,20 @@ export default function Hero() {
     if (!inner || !copy || !term) return;
     smashedRef.current = true;
 
-    const pieces = ['.hero-eyebrow', '.hero-title', '.hero-lede', '.hero-meta']
-      .map((sel) => copy.querySelector(sel))
-      .filter(Boolean);
+    const pieces = [...copy.querySelectorAll('[data-smash="chunk"]')];
+    const drops = [...copy.querySelectorAll('[data-smash="drop"]')];
+    const rects = pieces.map((el) => el.getBoundingClientRect());
 
     whomp();
 
-    for (const el of pieces) {
-      const rect = el.getBoundingClientRect();
+    // the connective words don't survive the impact
+    for (const el of drops) el.classList.add('word-fade');
+
+    const cleanup = { pieces, drops, bodies: [], abort: new AbortController() };
+    smashCleanupRef.current = cleanup;
+
+    pieces.forEach((el, i) => {
+      const rect = rects[i];
       el.style.width = `${rect.width}px`;
       el.style.margin = '0';
       el.style.position = 'fixed';
@@ -53,17 +60,23 @@ export default function Hero() {
         y: rect.top,
         w: rect.width,
         h: rect.height,
-        vx: -80,
-        vy: -60,
+        vx: -60 - Math.random() * 90,
+        vy: -40 - Math.random() * 120,
+        va: (Math.random() - 0.5) * 3,
       });
-      el.addEventListener('pointerdown', (event) => {
-        if (event.button !== 0) return;
-        event.preventDefault();
-        ensureAudio();
-        grab();
-        beginDrag(body, event.clientX, event.clientY);
-      });
-    }
+      cleanup.bodies.push(body);
+      el.addEventListener(
+        'pointerdown',
+        (event) => {
+          if (event.button !== 0) return;
+          event.preventDefault();
+          ensureAudio();
+          grab();
+          beginDrag(body, event.clientX, event.clientY);
+        },
+        { signal: cleanup.abort.signal },
+      );
+    });
 
     primaryCtaRef.current?.launch(-260, -120);
     resumeRef.current?.launch(-200, -160);
@@ -98,7 +111,7 @@ export default function Hero() {
       >
         <div className="hero-copy">
           <Reveal y={16}>
-            <p className="hero-eyebrow">
+            <p className="hero-eyebrow" data-smash="chunk">
               <span className="dot" aria-hidden="true" />
               open to internships &amp; software roles
             </p>
@@ -106,22 +119,33 @@ export default function Hero() {
 
           <Reveal delay={0.07} y={22}>
             <h1 className="hero-title">
-              Turning ideas into <span className="acc">code I trust.</span>
+              <span data-smash="chunk">Turning</span> <span data-smash="chunk">ideas</span>{' '}
+              <span data-smash="chunk">into</span> <span className="acc" data-smash="chunk">code</span>{' '}
+              <span className="acc" data-smash="chunk">I</span>{' '}
+              <span className="acc" data-smash="chunk">trust.</span>
             </h1>
           </Reveal>
 
           <Reveal delay={0.14} y={22}>
             <p className="hero-lede">
-              I&apos;m <strong>Ethan Harter</strong>, a CS student at Oregon State who spends a lot of
-              time building and training AI systems. I&apos;ve entered two hackathons so far and{' '}
-              <span className="highlight">won first place at both</span>.
+              <span data-smash="drop">I&apos;m </span>
+              <strong data-smash="chunk">Ethan Harter</strong>
+              <span data-smash="drop">, a </span>
+              <span data-smash="chunk">CS student</span>
+              <span data-smash="drop"> at </span>
+              <span data-smash="chunk">Oregon State</span>
+              <span data-smash="drop"> who spends a lot of time building and training </span>
+              <span data-smash="chunk">AI systems</span>
+              <span data-smash="drop">. I&apos;ve entered two hackathons so far and </span>
+              <span className="highlight" data-smash="chunk">won first place at both</span>
+              <span data-smash="drop">.</span>
             </p>
           </Reveal>
 
           <Reveal delay={0.21} y={18}>
             <div className="hero-meta">
               {profile.stats.map((stat) => (
-                <div key={stat.label} className="hm">
+                <div key={stat.label} className="hm" data-smash="chunk">
                   <b>{stat.value}</b>
                   <span>{stat.label}</span>
                 </div>

@@ -482,6 +482,19 @@ img {
   -webkit-user-select: none;
 }
 
+/* smash chunks wrap as units so each one is a clean single-line hitbox */
+.hero-title [data-smash='chunk'],
+.hero-lede [data-smash='chunk'] {
+  display: inline-block;
+}
+
+/* connective words vanish when the terminal hits */
+.word-fade {
+  opacity: 0;
+  filter: blur(3px);
+  transition: opacity 0.35s ease, filter 0.35s ease;
+}
+
 /* the terminal paints over the smashed pile (but under the fixed nav) */
 .hero-terminal {
   position: relative;
