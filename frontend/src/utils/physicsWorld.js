@@ -18,7 +18,6 @@ const MAX_TILT = 0.5; // rad; collisions stay AABB, so keep tilts modest
 let bodies = [];
 let raf = 0;
 let last = 0;
-let edge = null; // { x, vx, top, bottom }
 let impactCb = null;
 let changeCb = null;
 let dragBody = null;
@@ -56,7 +55,7 @@ function wake(b) {
   startLoop();
 }
 
-export function addBody({ el, x, y, w, h, vx = 0, vy = 0, va = 0 }) {
+export function addBody({ el, x, y, w, h, vx = 0, vy = 0, va = 0, exit = false }) {
   const body = {
     el,
     x,
@@ -67,7 +66,7 @@ export function addBody({ el, x, y, w, h, vx = 0, vy = 0, va = 0 }) {
     vy,
     angle: 0,
     va,
-    edgeTouched: false,
+    exit,
     sleeping: false,
     stillFrames: 0,
   };
@@ -86,28 +85,6 @@ export function removeBody(body) {
     detachDragListeners();
   }
   changeCb?.(bodies.length);
-}
-
-export function setEdge(next) {
-  edge = next;
-  bodies.forEach(wake);
-}
-
-export function clearEdge() {
-  if (edge) {
-    // the wall vanishes: anything that was pressed against it relaxes back
-    // rightward and tumbles down to lie on the ground
-    for (const b of bodies) {
-      if (b.edgeTouched) {
-        b.edgeTouched = false;
-        b.vx = 120 + Math.random() * 320;
-        b.vy = Math.min(b.vy, -60);
-        b.va += (Math.random() - 0.5) * 1.2;
-        wake(b);
-      }
-    }
-  }
-  edge = null;
 }
 
 // ── dragging ──────────────────────────────────────────────────────────────
@@ -246,33 +223,15 @@ function step(now) {
     }
   }
 
-  // the expanding terminal shoves bodies leftward
-  if (edge) {
-    for (const b of bodies) {
-      const vOverlap = b.y + b.h > edge.top && b.y < edge.bottom;
-      if (vOverlap && b.x + b.w > edge.x) {
-        wake(b);
-        b.x = edge.x - b.w;
-        const push = Math.min(edge.vx, 0) * 1.2;
-        if (b.vx > push) b.vx = push;
-        if (!b.edgeTouched) {
-          b.edgeTouched = true;
-          b.va += (Math.random() - 0.5) * 1.5; // tumble as the wall clips it
-        }
-      } else {
-        b.edgeTouched = false;
-      }
-    }
-  }
-
   for (let pass = 0; pass < SOLVER_PASSES; pass += 1) {
     for (let i = 0; i < bodies.length; i += 1) {
       for (let j = i + 1; j < bodies.length; j += 1) {
+        if (bodies[i].exit || bodies[j].exit) continue;
         resolvePair(bodies[i], bodies[j]);
       }
     }
     for (const b of bodies) {
-      if (b === dragBody) continue;
+      if (b === dragBody || b.exit) continue;
       const floor = window.innerHeight - b.h - EDGE;
       const right = window.innerWidth - b.w - EDGE;
       if (b.x < EDGE) {
@@ -306,10 +265,17 @@ function step(now) {
     }
   }
 
+  const toRemove = [];
   let allAsleep = true;
   for (const b of bodies) {
     applyTransform(b);
     if (b === dragBody) {
+      allAsleep = false;
+      continue;
+    }
+    if (b.exit) {
+      // exit bodies never settle: once fully past the left edge they're gone
+      if (b.x + b.w < -40) toRemove.push(b);
       allAsleep = false;
       continue;
     }
@@ -333,8 +299,9 @@ function step(now) {
     }
     allAsleep = false;
   }
+  for (const b of toRemove) removeBody(b);
 
-  if (allAsleep && !edge && !dragBody) {
+  if (allAsleep && !dragBody) {
     raf = 0;
     return;
   }
