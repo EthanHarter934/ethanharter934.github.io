@@ -336,6 +336,16 @@ img {
   fill: transparent;
   pointer-events: auto;
   cursor: grab;
+  /* a touch drag grabs the chain instead of scrolling the page */
+  touch-action: none;
+}
+
+/* fingers need a bigger target than cursors: ~43px effective at the
+   64px mobile chain width, up from ~30px */
+@media (pointer: coarse) {
+  .chain-wrap svg .chain-hit {
+    r: 30;
+  }
 }
 
 .chain-wrap svg.grabbing .chain-hit {
