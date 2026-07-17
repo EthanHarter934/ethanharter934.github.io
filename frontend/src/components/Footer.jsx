@@ -1,4 +1,5 @@
 import { contactLinks, profile } from '../data/portfolio';
+import { click } from '../utils/sfx';
 import Reveal from './Reveal';
 import Throwable from './Throwable';
 import { SocialIcon } from './Icons';
@@ -28,7 +29,11 @@ export default function Footer() {
 
         <Reveal delay={0.24} y={16} className="footer-email-wrap">
           <Throwable>
-            <a href={`mailto:${profile.email}`} className="btn-primary footer-email">
+            <a
+              href={`mailto:${profile.email}`}
+              className="btn-primary footer-email"
+              onClick={() => click(true, 0.35)}
+            >
               {profile.email} <span aria-hidden="true">↗</span>
             </a>
           </Throwable>
@@ -45,6 +50,7 @@ export default function Footer() {
                   title={link.label}
                   target={link.href.startsWith('http') ? '_blank' : undefined}
                   rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
+                  onClick={() => click(true, 0.35)}
                 >
                   <SocialIcon kind={link.kind} />
                 </a>

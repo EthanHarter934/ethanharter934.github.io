@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { navLinks, profile } from '../data/portfolio';
+import { click } from '../utils/sfx';
+
+const uiClick = () => click(true, 0.35);
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -36,12 +39,14 @@ export default function Navbar() {
   }, [menuOpen]);
 
   const handleNavClick = (event, href) => {
+    uiClick();
     event.preventDefault();
     setMenuOpen(false);
     document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleAskClick = () => {
+    uiClick();
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => document.getElementById('ask-input')?.focus({ preventScroll: true }), 650);
@@ -73,6 +78,7 @@ export default function Navbar() {
             href="#top"
             className="nav-logo"
             onClick={(event) => {
+              uiClick();
               event.preventDefault();
               setMenuOpen(false);
               window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -86,7 +92,7 @@ export default function Navbar() {
             {askLink}
           </nav>
 
-          <a className="nav-cta" href={`mailto:${profile.email}`}>
+          <a className="nav-cta" href={`mailto:${profile.email}`} onClick={uiClick}>
             Get in touch
           </a>
 
@@ -115,7 +121,7 @@ export default function Navbar() {
           >
             {links}
             {askLink}
-            <a className="nav-cta" href={`mailto:${profile.email}`}>
+            <a className="nav-cta" href={`mailto:${profile.email}`} onClick={uiClick}>
               Get in touch
             </a>
           </motion.div>

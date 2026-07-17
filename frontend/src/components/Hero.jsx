@@ -1,10 +1,12 @@
 import { profile } from '../data/portfolio';
+import { click } from '../utils/sfx';
 import Reveal from './Reveal';
 import Terminal from './Terminal';
 import Throwable from './Throwable';
 
 export default function Hero() {
   const handleWorkClick = (event) => {
+    click(true, 0.35);
     event.preventDefault();
     document.querySelector('#work')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -57,6 +59,7 @@ export default function Hero() {
                 target="_blank"
                 rel="noreferrer"
                 className="btn-quiet link-sweep"
+                onClick={() => click(true, 0.35)}
               >
                 résumé ↗
               </a>
