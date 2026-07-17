@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { profile } from '../data/portfolio';
-import { ensureAudio, grab, uiClick, whomp } from '../utils/sfx';
-import { addBody, beginDrag, clearEdge, removeBody, setEdge } from '../utils/physicsWorld';
+import { uiClick, whomp } from '../utils/sfx';
+import { addBody, removeBody } from '../utils/physicsWorld';
 import Reveal from './Reveal';
 import Terminal from './Terminal';
 import Throwable from './Throwable';
@@ -19,7 +19,6 @@ export default function Hero() {
     const onReset = () => {
       const cleanup = smashCleanupRef.current;
       if (cleanup) {
-        cleanup.abort.abort();
         cleanup.bodies.forEach(removeBody);
         for (const el of cleanup.pieces) {
           for (const prop of [
@@ -39,9 +38,9 @@ export default function Hero() {
         for (const el of cleanup.drops) el.classList.remove('word-fade');
         smashCleanupRef.current = null;
       }
-      clearEdge();
       smashedRef.current = false;
       setSmashed(false);
+      window.dispatchEvent(new CustomEvent('eh:hero-smash-state', { detail: false }));
     };
     window.addEventListener('eh:physics-reset', onReset);
     return () => window.removeEventListener('eh:physics-reset', onReset);
@@ -71,11 +70,12 @@ export default function Hero() {
     const rects = pieces.map((el) => el.getBoundingClientRect());
 
     whomp();
+    window.dispatchEvent(new CustomEvent('eh:hero-smash-state', { detail: true }));
 
     // the connective words don't survive the impact
     for (const el of drops) el.classList.add('word-fade');
 
-    const cleanup = { pieces, drops, bodies: [], abort: new AbortController() };
+    const cleanup = { pieces, drops, bodies: [] };
     smashCleanupRef.current = cleanup;
 
     pieces.forEach((el, i) => {
@@ -85,7 +85,7 @@ export default function Hero() {
       el.style.position = 'fixed';
       el.style.left = '0';
       el.style.top = '0';
-      el.style.zIndex = 15; // in front of the terminal (10) so the pile reads on top of it
+      el.style.zIndex = 15; // in front of the terminal (10) while it flies past
       el.classList.add('smashed-piece');
       const body = addBody({
         el,
@@ -93,58 +93,18 @@ export default function Hero() {
         y: rect.top,
         w: rect.width,
         h: rect.height,
-        vx: -60 - Math.random() * 90,
-        vy: -40 - Math.random() * 120,
+        vx: -900 - Math.random() * 400,
+        vy: -80 + Math.random() * 160,
         va: (Math.random() - 0.5) * 3,
+        exit: true,
       });
       cleanup.bodies.push(body);
-      el.addEventListener(
-        'pointerdown',
-        (event) => {
-          if (event.button !== 0) return;
-          event.preventDefault();
-          ensureAudio();
-          grab();
-          beginDrag(body, event.clientX, event.clientY);
-        },
-        { signal: cleanup.abort.signal },
-      );
     });
 
-    primaryCtaRef.current?.launch(-260, -120);
-    resumeRef.current?.launch(-200, -160);
+    primaryCtaRef.current?.vanish(-1000 - Math.random() * 300, -60);
+    resumeRef.current?.vanish(-1000 - Math.random() * 300, 60);
 
     setSmashed(true);
-
-    // the expanding terminal is a moving wall while the grid animates;
-    // the moment the expansion ends it stops colliding and the shoved
-    // pieces bounce back to settle on the ground
-    let prevLeft = term.getBoundingClientRect().left;
-    let prevT = performance.now();
-    let raf = 0;
-    const track = (now) => {
-      const rect = term.getBoundingClientRect();
-      const dt = Math.max((now - prevT) / 1000, 0.001);
-      const vx = (rect.left - prevLeft) / dt;
-      setEdge({ x: rect.left, vx, top: rect.top, bottom: rect.bottom });
-      prevLeft = rect.left;
-      prevT = now;
-      raf = requestAnimationFrame(track);
-    };
-    raf = requestAnimationFrame(track);
-
-    let fallback = 0;
-    const stopEdge = () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(fallback);
-      inner.removeEventListener('transitionend', onEnd);
-      clearEdge();
-    };
-    const onEnd = (event) => {
-      if (event.propertyName === 'grid-template-columns') stopEdge();
-    };
-    inner.addEventListener('transitionend', onEnd);
-    fallback = setTimeout(stopEdge, 1400);
   };
 
   return (
