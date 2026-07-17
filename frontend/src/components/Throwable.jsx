@@ -43,6 +43,7 @@ function HintArrow() {
 const Throwable = forwardRef(function Throwable({ children, hint }, ref) {
   const bodyRef = useRef(null);
   const [free, setFree] = useState(false);
+  const [exiting, setExiting] = useState(false);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [hintVisible, setHintVisible] = useState(false);
   const [hintDismissed, setHintDismissed] = useState(false);
@@ -51,6 +52,7 @@ const Throwable = forwardRef(function Throwable({ children, hint }, ref) {
     dragging: false,
     started: false,
     free: false,
+    exiting: false,
     startX: 0,
     startY: 0,
     suppressClick: false,
@@ -69,11 +71,13 @@ const Throwable = forwardRef(function Throwable({ children, hint }, ref) {
       if (p.body) removeBody(p.body);
       p.body = null;
       p.free = false;
+      p.exiting = false;
       p.dragging = false;
       p.started = false;
       const el = bodyRef.current;
       if (el) el.style.transform = '';
       setFree(false);
+      setExiting(false);
     };
     window.addEventListener('eh:physics-reset', onReset);
     return () => window.removeEventListener('eh:physics-reset', onReset);
@@ -85,7 +89,7 @@ const Throwable = forwardRef(function Throwable({ children, hint }, ref) {
   };
 
   // measure the element and hand it to the physics world
-  const freeUp = (vx = 0, vy = 0) => {
+  const freeUp = (vx = 0, vy = 0, exit = false) => {
     const p = phys.current;
     if (p.free) {
       if (p.body) {
@@ -101,7 +105,7 @@ const Throwable = forwardRef(function Throwable({ children, hint }, ref) {
     setSize({ w: rect.width, h: rect.height });
     p.free = true;
     setFree(true);
-    p.body = addBody({ el, x: rect.left, y: rect.top, w: rect.width, h: rect.height, vx, vy });
+    p.body = addBody({ el, x: rect.left, y: rect.top, w: rect.width, h: rect.height, vx, vy, exit });
     return p.body;
   };
 
@@ -110,6 +114,15 @@ const Throwable = forwardRef(function Throwable({ children, hint }, ref) {
       if (phys.current.reduce) return;
       if (hint) dismissHint();
       freeUp(vx, vy);
+    },
+    // like launch, but the element passes through everything and is
+    // removed once it clears the left edge instead of joining the pile
+    vanish(vx, vy) {
+      if (phys.current.reduce) return;
+      if (hint) dismissHint();
+      phys.current.exiting = true;
+      setExiting(true);
+      freeUp(vx, vy, true);
     },
   }));
 
@@ -138,7 +151,7 @@ const Throwable = forwardRef(function Throwable({ children, hint }, ref) {
 
   const onPointerDown = (event) => {
     const p = phys.current;
-    if (p.reduce) return;
+    if (p.reduce || p.exiting) return;
     if (event.button !== 0) return;
     // stop the browser from starting a text selection on a fast flick
     event.preventDefault();
@@ -217,7 +230,7 @@ const Throwable = forwardRef(function Throwable({ children, hint }, ref) {
           userSelect: 'none',
           WebkitUserSelect: 'none',
           ...(free
-            ? { position: 'fixed', left: 0, top: 0, zIndex: 400, cursor: 'grab' }
+            ? { position: 'fixed', left: 0, top: 0, zIndex: 400, cursor: exiting ? 'default' : 'grab' }
             : { position: 'relative' }),
         }}
       >
