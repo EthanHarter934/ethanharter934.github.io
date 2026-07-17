@@ -1,52 +1,74 @@
+import { useRef } from 'react';
 import { projects } from '../data/portfolio';
 import RichText from './RichText';
-import useIntersectionObserver from '../hooks/useIntersectionObserver';
+import Reveal from './Reveal';
+import SectionHeader from './SectionHeader';
+import { GitHubIcon } from './Icons';
 
-function ProjectItem({ project, delay }) {
-  const [setProjectRef, isVisible] = useIntersectionObserver();
+// C1 — spotlight glow border follows the cursor; card lifts 4px.
+function WorkCard({ project, index }) {
+  const cardRef = useRef(null);
+
+  const handlePointerMove = (event) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--gx', `${event.clientX - rect.left}px`);
+    card.style.setProperty('--gy', `${event.clientY - rect.top}px`);
+  };
 
   return (
-    <div
-      className={`project-item reveal ${isVisible ? 'visible' : ''}`}
-      ref={setProjectRef}
-      style={{ '--reveal-delay': `${delay}ms` }}
-    >
-      <div className="project-header">
-        <h3>{project.title}</h3>
-        <span className="project-date">{project.date}</span>
-      </div>
-      <div className="project-content">
-        <div className="project-image-wrapper">
-          <img src={project.image} alt={project.alt} className="project-image" />
-          <a
-            href={project.githubUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="project-github-link"
-          >
-            <img src="/Images/github-icon.png" alt="GitHub" className="github-overlay" />
-          </a>
+    <Reveal delay={Math.min(index, 1) * 0.06}>
+      <article
+        ref={cardRef}
+        className={`glow-card work-card ${index % 2 ? 'flip' : ''}`}
+        onPointerMove={handlePointerMove}
+      >
+        <div className="work-visual">
+          <img src={project.image} alt={project.alt} className="work-image" loading="lazy" />
         </div>
-        <p>
-          <RichText segments={project.description} />
-        </p>
-      </div>
-    </div>
+
+        <div className="work-body">
+          <div className="work-meta">
+            <span className="work-year">{project.year}</span>
+            <span className="meta-divider" aria-hidden="true" />
+            <span>{project.stack}</span>
+          </div>
+
+          {project.award && (
+            <div className="work-award-tag">
+              <span aria-hidden="true">◆</span> {project.award}
+            </div>
+          )}
+
+          <h3 className="work-title">{project.name}</h3>
+
+          <p className="work-desc">
+            <RichText segments={project.description} />
+          </p>
+
+          <div className="work-links">
+            <a href={project.githubUrl} target="_blank" rel="noreferrer" className="work-link link-sweep">
+              <GitHubIcon /> view code <span className="arrow" aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+      </article>
+    </Reveal>
   );
 }
 
 export default function Projects() {
-  const [setHeadingRef, isVisible] = useIntersectionObserver();
-
   return (
-    <section id="projects">
-      <h2 ref={setHeadingRef} className={`reveal ${isVisible ? 'visible' : ''}`}>
-        Projects
-      </h2>
-
-      {projects.map((project, index) => (
-        <ProjectItem key={project.title} project={project} delay={index * 80} />
-      ))}
+    <section id="work" className="section">
+      <div className="container">
+        <SectionHeader label="selected work" title="Built, shipped, awarded." />
+        <div className="work-list">
+          {projects.map((project, index) => (
+            <WorkCard key={project.name} project={project} index={index} />
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

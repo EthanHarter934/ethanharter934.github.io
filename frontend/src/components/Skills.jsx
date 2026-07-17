@@ -1,50 +1,68 @@
+import { useEffect, useRef, useState } from 'react';
 import { skills } from '../data/portfolio';
-import useIntersectionObserver from '../hooks/useIntersectionObserver';
+import Reveal from './Reveal';
+import SectionHeader from './SectionHeader';
 
-function ScrollingList({ items, direction }) {
+const SPEED_PX_PER_S = 46;
+
+// Marquee clipped to the content column with a soft fade at both
+// edges. The chip group is cloned until each half of the track covers
+// the container, so the loop never shows a gap at any width.
+function MarqueeRow({ items, reverse }) {
+  const marqueeRef = useRef(null);
+  const groupRef = useRef(null);
+  const [copies, setCopies] = useState(2);
+  const [duration, setDuration] = useState(38);
+
+  useEffect(() => {
+    const measure = () => {
+      const containerWidth = marqueeRef.current?.clientWidth;
+      const groupWidth = groupRef.current?.scrollWidth;
+      if (!containerWidth || !groupWidth) return;
+      // copies stay even so the translateX(-50%) loop is seamless
+      const perHalf = Math.max(1, Math.ceil((containerWidth * 1.15) / groupWidth));
+      setCopies(perHalf * 2);
+      setDuration((groupWidth * perHalf) / SPEED_PX_PER_S);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [items]);
+
   return (
-    <div className="marquee">
-      <div className={`marquee-track ${direction === 'left' ? 'marquee-left' : 'marquee-right'}`}>
-        <ul className="marquee-group">
-          {items.map((item) => (
-            <li key={`${item}-a`}>{item}</li>
-          ))}
-        </ul>
-        <ul className="marquee-group" aria-hidden="true">
-          {items.map((item) => (
-            <li key={`${item}-b`}>{item}</li>
-          ))}
-        </ul>
+    <div className="marquee" ref={marqueeRef}>
+      <div
+        className={`marquee-track ${reverse ? 'reverse' : ''}`}
+        style={{ '--marquee-dur': `${duration}s` }}
+      >
+        {Array.from({ length: copies }, (_, copy) => (
+          <ul
+            key={copy}
+            className="marquee-group"
+            ref={copy === 0 ? groupRef : undefined}
+            aria-hidden={copy > 0 || undefined}
+          >
+            {items.map((item) => (
+              <li key={item}>
+                <span className="skill-chip">{item}</span>
+              </li>
+            ))}
+          </ul>
+        ))}
       </div>
     </div>
   );
 }
 
 export default function Skills() {
-  const [setHeadingRef, isHeadingVisible] = useIntersectionObserver();
-  const [setLanguagesRef, areLanguagesVisible] = useIntersectionObserver();
-  const [setToolsRef, areToolsVisible] = useIntersectionObserver();
-
   return (
-    <section id="skills">
-      <h2 ref={setHeadingRef} className={`reveal ${isHeadingVisible ? 'visible' : ''}`}>
-        Technical Skills & Tools
-      </h2>
-
-      <div
-        ref={setLanguagesRef}
-        className={`skills-section-item reveal ${areLanguagesVisible ? 'visible' : ''}`}
-      >
-        <h3>Languages:</h3>
-        <ScrollingList items={skills.languages} direction="left" />
-      </div>
-
-      <div
-        ref={setToolsRef}
-        className={`skills-section-item reveal ${areToolsVisible ? 'visible' : ''}`}
-      >
-        <h3>Tools:</h3>
-        <ScrollingList items={skills.tools} direction="right" />
+    <section id="skills" className="section">
+      <div className="container">
+        <SectionHeader label="capabilities" title="Skills & tools" />
+        <Reveal className="skills-strips" y={18}>
+          <MarqueeRow items={skills.languages} />
+          <MarqueeRow items={skills.tools} reverse />
+        </Reveal>
       </div>
     </section>
   );

@@ -1,77 +1,59 @@
-import { useRef, useState, useEffect, Suspense, lazy } from 'react';
-import Sidebar from '../components/Sidebar';
-import Education from '../components/Education';
-import Skills from '../components/Skills';
-import Experience from '../components/Experience';
+import { useCallback, useEffect, useState } from 'react';
+import { MotionConfig } from 'motion/react';
+import Navbar from '../components/Navbar';
+import PullChain from '../components/PullChain';
+import Hero from '../components/Hero';
 import Projects from '../components/Projects';
-import ChatWidget from '../components/ChatWidget';
-import useScrollToSection from '../hooks/useScrollToSection';
+import Skills from '../components/Skills';
+import Background from '../components/Background';
+import Awards from '../components/Awards';
+import Beyond from '../components/Beyond';
+import Footer from '../components/Footer';
 
-const Awards = lazy(() => import('../components/Awards'));
-const Extracurriculars = lazy(() => import('../components/Extracurriculars'));
-const ContactBar = lazy(() => import('../components/ContactBar'));
-
-function SectionPlaceholder() {
-  return <div className="section-placeholder" style={{ padding: '2rem', color: '#999' }}>Loading...</div>;
+function getInitialTheme() {
+  if (typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light') {
+    return 'light';
+  }
+  return 'dark';
 }
 
 export default function Home() {
-  const mainRef = useRef(null);
-  const sidebarRef = useRef(null);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { handleNavClick } = useScrollToSection(mainRef);
+  const [theme, setTheme] = useState(getInitialTheme);
 
-  const handleSidebarNavClick = (event, href) => {
-    setIsChatOpen(false);
-    setIsMobileMenuOpen(false);
-    handleNavClick(event, href);
-  };
+  const toggleTheme = useCallback(() => {
+    setTheme((current) => (current === 'dark' ? 'light' : 'dark'));
+  }, []);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    if (isMobileMenuOpen) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+    if (theme === 'light') {
+      document.documentElement.dataset.theme = 'light';
+    } else {
+      delete document.documentElement.dataset.theme;
     }
-  }, [isMobileMenuOpen]);
+    try {
+      localStorage.setItem('eh-theme', theme);
+    } catch {
+      // private mode — theme just won't persist
+    }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = theme === 'light' ? '#f2ede3' : '#0c0e10';
+  }, [theme]);
 
   return (
-    <div className={`home-container ${isChatOpen ? 'chat-open' : ''}`}>
-      <div ref={sidebarRef} className="sidebar-wrapper">
-        <Sidebar
-          onNavClick={handleSidebarNavClick}
-          onChatClick={() => {
-            setIsChatOpen((open) => !open);
-            setIsMobileMenuOpen(false);
-          }}
-          isMobileMenuOpen={isMobileMenuOpen}
-          setIsMobileMenuOpen={setIsMobileMenuOpen}
-        />
-      </div>
-      <div className={`main ${isChatOpen ? 'main-chat-open' : ''}`} ref={mainRef}>
-        <div className={`main-content ${isChatOpen ? 'main-content-hidden' : ''}`}>
-          <Education />
-          <Skills />
-          <Experience />
-          <Projects />
-          <Suspense fallback={<SectionPlaceholder />}>
-            <Awards />
-          </Suspense>
-          <Suspense fallback={<SectionPlaceholder />}>
-            <Extracurriculars />
-          </Suspense>
-          <Suspense fallback={<SectionPlaceholder />}>
-            <ContactBar />
-          </Suspense>
-        </div>
-        {isChatOpen && <ChatWidget onClose={() => setIsChatOpen(false)} />}
-      </div>
-    </div>
+    <MotionConfig reducedMotion="user">
+      <Navbar />
+      <PullChain onToggle={toggleTheme} theme={theme} />
+
+      <main>
+        <Hero />
+        <Projects />
+        <Skills />
+        <Background />
+        <Awards />
+        <Beyond />
+      </main>
+
+      <Footer />
+    </MotionConfig>
   );
 }
