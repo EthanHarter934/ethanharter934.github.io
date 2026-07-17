@@ -105,6 +105,8 @@ const mockSkills = [
   { SK: 'SKILL#python', data: { name: 'Python', category: 'language' } },
   { SK: 'SKILL#react', data: { name: 'React', category: 'framework' } },
   { SK: 'SKILL#github', data: { name: 'GitHub', category: 'tool' } },
+  { SK: 'SKILL#mcp', data: { name: 'MCP (Model Context Protocol)', category: 'ai' } },
+  { SK: 'SKILL#bertweet', data: { name: 'BERTweet', category: 'ai' } },
 ];
 
 // Test: Parse skills correctly
@@ -114,8 +116,27 @@ test('Parse skills correctly', () => {
     ...item.data,
   }));
 
-  if (skills.length !== 3) throw new Error('Expected 3 skills');
+  if (skills.length !== 5) throw new Error('Expected 5 skills');
   if (skills[0].category !== 'language') throw new Error('Category not preserved');
+});
+
+// Test: getSkills schema advertises the ai category
+test('getSkills schema includes ai category', async () => {
+  const { definition } = await import('./getSkills.js');
+  const categories = definition.inputSchema.properties.category.enum;
+  if (!categories.includes('ai')) throw new Error(`'ai' missing from enum: ${categories}`);
+});
+
+// Test: Filter skills by ai category
+test('Filter skills by ai category', () => {
+  let skills = mockSkills.map((item) => ({
+    id: item.SK.replace('SKILL#', ''),
+    ...item.data,
+  }));
+
+  skills = skills.filter((s) => s.category === 'ai');
+
+  if (skills.length !== 2) throw new Error(`Expected 2 ai skills, got ${skills.length}`);
 });
 
 // Test: Filter skills by category
@@ -138,7 +159,7 @@ async function runTests() {
 
   for (const { name, fn } of tests) {
     try {
-      fn();
+      await fn();
       console.log(`✅ ${name}`);
       passed++;
     } catch (error) {

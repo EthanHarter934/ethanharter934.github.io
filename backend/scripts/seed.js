@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
+import { BatchWriteCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME, PROFILE_PK } from '../mcp-server/db/dynamoClient.js';
 
 const items = [
@@ -182,21 +182,10 @@ const items = [
     { name: 'AWS Lambda', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
     { name: 'AWS API Gateway', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
     { name: 'AWS DynamoDB', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
-    { name: 'AWS Bedrock', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
     { name: 'AWS S3', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
     { name: 'AWS CloudFront', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
     { name: 'AWS CloudWatch', category: 'tool', proficiencyLevel: 'beginner', yearsOfExperience: 1 },
     { name: 'AWS SDK', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
-
-    // AI/ML Tools & Models
-    { name: 'BERT', category: 'framework', proficiencyLevel: 'advanced', yearsOfExperience: 2 },
-    { name: 'BERTweet', category: 'framework', proficiencyLevel: 'advanced', yearsOfExperience: 1 },
-    { name: 'MediaPipe', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
-    { name: 'EfficientNetB0', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
-    { name: 'Hugging Face', category: 'tool', proficiencyLevel: 'advanced', yearsOfExperience: 1 },
-    { name: 'Gemini', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
-    { name: 'Claude Haiku', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
-    { name: 'gTTS', category: 'tool', proficiencyLevel: 'beginner', yearsOfExperience: 1 },
 
     // Database
     { name: 'MySQL', category: 'tool', proficiencyLevel: 'intermediate', yearsOfExperience: 2 },
@@ -210,6 +199,27 @@ const items = [
   ].map((skill, idx) => ({
     PK: PROFILE_PK,
     SK: `SKILL#${skill.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-tool-${idx}`,
+    type: 'skill',
+    data: skill,
+  })),
+
+  // ── Skills — AI / ML ──────────────────────────────────────────────────────
+  ...[
+    { name: 'Claude (AWS Bedrock)', category: 'ai', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
+    { name: 'Gemini', category: 'ai', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
+    { name: 'AWS Bedrock', category: 'ai', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
+    { name: 'MCP (Model Context Protocol)', category: 'ai', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
+    { name: 'Tool Calling / Agents', category: 'ai', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
+    { name: 'Prompt Engineering', category: 'ai', proficiencyLevel: 'advanced', yearsOfExperience: 2 },
+    { name: 'BERT', category: 'ai', proficiencyLevel: 'advanced', yearsOfExperience: 2 },
+    { name: 'BERTweet', category: 'ai', proficiencyLevel: 'advanced', yearsOfExperience: 1 },
+    { name: 'Hugging Face', category: 'ai', proficiencyLevel: 'advanced', yearsOfExperience: 1 },
+    { name: 'MediaPipe', category: 'ai', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
+    { name: 'EfficientNetB0', category: 'ai', proficiencyLevel: 'intermediate', yearsOfExperience: 1 },
+    { name: 'gTTS', category: 'ai', proficiencyLevel: 'beginner', yearsOfExperience: 1 },
+  ].map((skill, idx) => ({
+    PK: PROFILE_PK,
+    SK: `SKILL#${skill.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-ai-${idx}`,
     type: 'skill',
     data: skill,
   })),
@@ -376,6 +386,29 @@ async function seed() {
   console.log(`Seeding ${items.length} items into ${TABLE_NAME} (PK: ${PROFILE_PK})...`);
 
   const batchSize = 25;
+
+  // skill SKs are index-based; purge existing skills so a reseed can't strand stale rows
+  const existing = await docClient.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: 'PK = :pk AND begins_with(SK, :skPrefix)',
+      ExpressionAttributeValues: { ':pk': PROFILE_PK, ':skPrefix': 'SKILL#' },
+      ProjectionExpression: 'PK, SK',
+    }),
+  );
+  const stale = existing.Items || [];
+  for (let i = 0; i < stale.length; i += batchSize) {
+    const batch = stale.slice(i, i + batchSize);
+    await docClient.send(
+      new BatchWriteCommand({
+        RequestItems: {
+          [TABLE_NAME]: batch.map((item) => ({ DeleteRequest: { Key: { PK: item.PK, SK: item.SK } } })),
+        },
+      }),
+    );
+  }
+  if (stale.length) console.log(`  Purged ${stale.length} existing skill rows`);
+
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
 

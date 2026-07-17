@@ -5,13 +5,13 @@ import { portfolioCache } from '../../utils/cache.js';
 export const definition = {
   name: 'getSkills',
   description:
-    'Retrieve technical skills. Optionally filter by category: language, framework, tool, cloud, or other.',
+    'Retrieve technical skills. Optionally filter by category: ai, language, framework, tool, cloud, or other. The ai category covers LLM integration, MCP, model fine-tuning, and computer vision skills.',
   inputSchema: {
     type: 'object',
     properties: {
       category: {
         type: 'string',
-        enum: ['language', 'framework', 'tool', 'cloud', 'other'],
+        enum: ['ai', 'language', 'framework', 'tool', 'cloud', 'other'],
         description: 'Filter skills by category.',
       },
     },
