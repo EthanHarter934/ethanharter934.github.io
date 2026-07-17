@@ -15,10 +15,11 @@ export const profile = {
 
 export const navLinks = [
   { href: '#work', label: 'work', num: '01' },
-  { href: '#skills', label: 'skills', num: '02' },
-  { href: '#background', label: 'background', num: '03' },
-  { href: '#recognition', label: 'recognition', num: '04' },
-  { href: '#contact', label: 'contact', num: '05' },
+  { href: '#ai', label: 'ai', num: '02' },
+  { href: '#skills', label: 'skills', num: '03' },
+  { href: '#background', label: 'background', num: '04' },
+  { href: '#recognition', label: 'recognition', num: '05' },
+  { href: '#contact', label: 'contact', num: '06' },
 ];
 
 export const contactLinks = [
@@ -46,8 +47,35 @@ export const education = {
 
 export const skills = {
   languages: ['Python', 'JavaScript', 'HTML/CSS', 'SQL', 'C++', 'C#', 'C', 'Assembly', 'R', 'Java', 'TypeScript'],
-  tools: ['BERT', 'React', 'Node.js', 'Linux SSH Servers', 'MySQL', 'GitHub', 'VSCode', 'Unity', 'AWS', 'Docker', 'FastAPI'],
+  tools: ['React', 'Node.js', 'Linux SSH Servers', 'MySQL', 'GitHub', 'VSCode', 'Unity', 'AWS', 'Docker', 'FastAPI'],
 };
+
+export const aiCapabilities = [
+  {
+    title: 'LLM Integration & Agents',
+    description:
+      "I wire language models into real products. The chatbot in this site's terminal runs on AWS Bedrock with tool calling, deciding on its own which portfolio tools to query. ProPosture and MyLesion both lean on Gemini to turn raw model output into something people actually want to read.",
+    chips: ['Claude', 'Gemini', 'AWS Bedrock', 'Tool Calling'],
+  },
+  {
+    title: 'MCP Servers',
+    description:
+      'This portfolio runs on a custom MCP server I built from scratch. It exposes DynamoDB-backed tools for projects, skills, experience, and search, so the chat model grounds every answer in real data instead of guessing.',
+    chips: ['MCP', 'Node.js', 'DynamoDB'],
+  },
+  {
+    title: 'NLP & Model Fine-Tuning',
+    description:
+      'I fine-tune transformers for research: BERTweet classifiers for emotion, theme, and stance detection, plus topic modeling across tens of thousands of tweets. Two of my models are live on Hugging Face right now.',
+    chips: ['BERTweet', 'Hugging Face', 'Topic Modeling'],
+  },
+  {
+    title: 'Computer Vision',
+    description:
+      'From a MediaPipe pose pipeline that watches your posture in real time to an EfficientNetB0 CNN trained on 46,000+ clinical images, I like models that look at the world and do something useful with what they see.',
+    chips: ['MediaPipe', 'EfficientNetB0', 'TensorFlow'],
+  },
+];
 
 export const experience = [
   {

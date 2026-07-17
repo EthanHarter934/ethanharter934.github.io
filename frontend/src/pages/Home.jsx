@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import PullChain from '../components/PullChain';
 import Hero from '../components/Hero';
 import Projects from '../components/Projects';
+import AICapabilities from '../components/AICapabilities';
 import Skills from '../components/Skills';
 import Background from '../components/Background';
 import Awards from '../components/Awards';
@@ -47,6 +48,7 @@ export default function Home() {
       <main>
         <Hero />
         <Projects />
+        <AICapabilities />
         <Skills />
         <Background />
         <Awards />
