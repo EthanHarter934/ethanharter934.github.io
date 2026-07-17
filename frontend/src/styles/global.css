@@ -462,6 +462,11 @@ img {
 .hero-inner.term-expanded .hero-copy {
   min-width: 0;
   overflow: hidden;
+  /* the leftover connective words (drops) are still in flow once their
+     chunk siblings are pulled out to fixed pieces; without this they
+     wrap one-word-per-line as the column collapses, inflating the grid
+     row's height and shoving the vertically-centered terminal down */
+  white-space: nowrap;
 }
 
 .hero-inner.term-expanded .hero-terminal .term {

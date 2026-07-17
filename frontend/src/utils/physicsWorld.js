@@ -94,6 +94,19 @@ export function setEdge(next) {
 }
 
 export function clearEdge() {
+  if (edge) {
+    // the wall vanishes: anything that was pressed against it relaxes back
+    // rightward and tumbles down to lie on the ground
+    for (const b of bodies) {
+      if (b.edgeTouched) {
+        b.edgeTouched = false;
+        b.vx = 120 + Math.random() * 320;
+        b.vy = Math.min(b.vy, -60);
+        b.va += (Math.random() - 0.5) * 1.2;
+        wake(b);
+      }
+    }
+  }
   edge = null;
 }
 
@@ -162,16 +175,18 @@ function resolvePair(a, b) {
     a.x += dir * px * aShare;
     b.x -= dir * px * (1 - aShare);
     const rel = a.vx - b.vx;
-    if (rel * dir < 0) {
+    // impulse only for real hits; resting contact separates positionally so
+    // a wedged pile can't pump velocity/spin into itself forever
+    if (rel * dir < 0 && Math.abs(rel) > 40) {
       const j = (-(1 + RESTITUTION) * rel) / 2;
       if (Math.abs(rel) > 120) impact(Math.abs(rel));
       if (!aKin) {
         a.vx += j;
-        a.va += j * 0.004;
+        a.va += j * 0.002;
       }
       if (!bKin) {
         b.vx -= j;
-        b.va -= j * 0.004;
+        b.va -= j * 0.002;
       }
     }
   } else {
@@ -183,16 +198,16 @@ function resolvePair(a, b) {
     a.y += dir * py * aShare;
     b.y -= dir * py * (1 - aShare);
     const rel = a.vy - b.vy;
-    if (rel * dir < 0) {
+    if (rel * dir < 0 && Math.abs(rel) > 40) {
       const j = (-(1 + RESTITUTION) * rel) / 2;
       if (Math.abs(rel) > 120) impact(Math.abs(rel));
       if (!aKin) {
         a.vy += j;
-        a.va += j * 0.004;
+        a.va += j * 0.002;
       }
       if (!bKin) {
         b.vy -= j;
-        b.va -= j * 0.004;
+        b.va -= j * 0.002;
       }
     }
   }
@@ -264,19 +279,19 @@ function step(now) {
         b.x = EDGE;
         if (b.vx < -120) impact(-b.vx);
         b.vx = -b.vx * RESTITUTION;
-        b.va += b.vy * 0.003;
+        b.va += b.vy * 0.0018;
       } else if (b.x > right) {
         b.x = right;
         if (b.vx > 120) impact(b.vx);
         b.vx = -b.vx * RESTITUTION;
-        b.va -= b.vy * 0.003;
+        b.va -= b.vy * 0.0018;
       }
       if (b.y >= floor) {
         b.y = floor;
         if (Math.abs(b.vy) > 220) {
           impact(Math.abs(b.vy));
           b.vy = -b.vy * RESTITUTION;
-          b.va += b.vx * 0.0035;
+          b.va += b.vx * 0.0018;
         } else {
           b.vy = 0;
           // grounded: bleed off spin and settle mostly flat
@@ -301,6 +316,10 @@ function step(now) {
     if (b.sleeping) continue;
     const speed = Math.hypot(b.vx, b.vy);
     if (speed < SLEEP_SPEED) {
+      // nearly at rest (floor or pile): bleed off spin and settle mostly
+      // flat, whatever the body is resting on
+      b.va *= 0.8;
+      b.angle *= 0.9;
       b.stillFrames += 1;
       if (b.stillFrames >= SLEEP_FRAMES) {
         b.sleeping = true;

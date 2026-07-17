@@ -85,7 +85,7 @@ export default function Hero() {
       el.style.position = 'fixed';
       el.style.left = '0';
       el.style.top = '0';
-      el.style.zIndex = 5; // behind the terminal so the pile can't cover the chat
+      el.style.zIndex = 15; // in front of the terminal (10) so the pile reads on top of it
       el.classList.add('smashed-piece');
       const body = addBody({
         el,
@@ -116,7 +116,9 @@ export default function Hero() {
 
     setSmashed(true);
 
-    // the expanding terminal is a moving wall while the grid animates
+    // the expanding terminal is a moving wall while the grid animates;
+    // the moment the expansion ends it stops colliding and the shoved
+    // pieces bounce back to settle on the ground
     let prevLeft = term.getBoundingClientRect().left;
     let prevT = performance.now();
     let raf = 0;
@@ -130,10 +132,19 @@ export default function Hero() {
       raf = requestAnimationFrame(track);
     };
     raf = requestAnimationFrame(track);
-    setTimeout(() => {
+
+    let fallback = 0;
+    const stopEdge = () => {
       cancelAnimationFrame(raf);
+      clearTimeout(fallback);
+      inner.removeEventListener('transitionend', onEnd);
       clearEdge();
-    }, 950);
+    };
+    const onEnd = (event) => {
+      if (event.propertyName === 'grid-template-columns') stopEdge();
+    };
+    inner.addEventListener('transitionend', onEnd);
+    fallback = setTimeout(stopEdge, 1400);
   };
 
   return (
