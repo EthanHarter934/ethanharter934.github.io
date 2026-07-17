@@ -43,7 +43,7 @@ function trimForApi(messages) {
 const REDUCE_MOTION =
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export default function Terminal() {
+export default function Terminal({ onSend }) {
   const [bootedLines, setBootedLines] = useState(() => (REDUCE_MOTION ? BOOT_LINES : []));
   const [typedChars, setTypedChars] = useState(0);
   const [booted, setBooted] = useState(REDUCE_MOTION);
@@ -101,6 +101,7 @@ export default function Terminal() {
     const trimmed = input.trim();
     if (!trimmed || loading || !booted) return;
     sendSfx();
+    onSend?.();
 
     const userMessage = { role: 'user', content: trimmed };
     const nextMessages = [...messages, userMessage];
