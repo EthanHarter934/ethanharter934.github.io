@@ -93,7 +93,7 @@ export default function Hero() {
         y: rect.top,
         w: rect.width,
         h: rect.height,
-        vx: -900 - Math.random() * 400,
+        vx: -1300 - Math.random() * 500,
         vy: -80 + Math.random() * 160,
         va: (Math.random() - 0.5) * 3,
         exit: true,
@@ -101,8 +101,8 @@ export default function Hero() {
       cleanup.bodies.push(body);
     });
 
-    primaryCtaRef.current?.vanish(-1000 - Math.random() * 300, -60);
-    resumeRef.current?.vanish(-1000 - Math.random() * 300, 60);
+    primaryCtaRef.current?.vanish(-1400 - Math.random() * 400, -60);
+    resumeRef.current?.vanish(-1400 - Math.random() * 400, 60);
 
     setSmashed(true);
   };
