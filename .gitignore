@@ -8,3 +8,4 @@ lambda.zip
 !**/.env.example
 !**/.env.production.example
 infra/config.env
+.playwright-mcp/
