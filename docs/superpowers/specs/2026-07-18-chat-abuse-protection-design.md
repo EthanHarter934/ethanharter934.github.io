@@ -48,8 +48,11 @@ never notice a limit.
    all IPs**. Over cap → 429 with a `dailyCapReached: true` flag so the
    frontend can show a distinct message
 5. **Call Bedrock** with the tool loop capped at **5 iterations** (replaces
-   `while (true)`). On hitting the cap, request a final answer with no
-   `toolConfig` so the model must respond in text
+   `while (true)`). On hitting the cap, append an instruction to answer with
+   the information already gathered and make one final call. (`toolConfig`
+   must stay — Bedrock rejects requests whose history contains tool blocks
+   without it.) If the model still tries to call tools, return a fallback
+   string instead
 6. **CORS**: response header `Access-Control-Allow-Origin` set from a
    `FRONTEND_ORIGIN` env var instead of `*`
 
