@@ -13,7 +13,6 @@ const SLEEP_SPEED = 18; // px/s
 const SLEEP_FRAMES = 14;
 const SOLVER_PASSES = 3;
 const MAX_DRAG_V = 2000; // cap on drag-frame velocity so impulses stay sane
-const MAX_TILT = 0.5; // rad; collisions stay AABB, so keep tilts modest
 
 let bodies = [];
 let raf = 0;
@@ -46,7 +45,7 @@ function impact(speed) {
 }
 
 function applyTransform(b) {
-  if (b.el) b.el.style.transform = `translate3d(${b.x}px, ${b.y}px, 0) rotate(${b.angle}rad)`;
+  if (b.el) b.el.style.transform = `translate3d(${b.x}px, ${b.y}px, 0)`;
 }
 
 function wake(b) {
@@ -55,7 +54,7 @@ function wake(b) {
   startLoop();
 }
 
-export function addBody({ el, x, y, w, h, vx = 0, vy = 0, va = 0, exit = false }) {
+export function addBody({ el, x, y, w, h, vx = 0, vy = 0, exit = false }) {
   const body = {
     el,
     x,
@@ -64,13 +63,10 @@ export function addBody({ el, x, y, w, h, vx = 0, vy = 0, va = 0, exit = false }
     h,
     vx,
     vy,
-    angle: 0,
-    va,
     exit,
     sleeping: false,
     stillFrames: 0,
   };
-  if (el) el.style.transformOrigin = '50% 50%';
   bodies.push(body);
   applyTransform(body);
   wake(body);
@@ -127,7 +123,6 @@ export function endDrag(body) {
   const clamp = (v) => Math.max(-MAX_FLING, Math.min(MAX_FLING, v));
   body.vx = clamp((((lastS?.x ?? 0) - (first?.x ?? 0)) / dt) * FLING_SCALE);
   body.vy = clamp((((lastS?.y ?? 0) - (first?.y ?? 0)) / dt) * FLING_SCALE);
-  body.va = Math.max(-4, Math.min(4, body.vx * 0.0025));
   wake(body);
   return { vx: body.vx, vy: body.vy };
 }
@@ -157,14 +152,8 @@ function resolvePair(a, b) {
     if (rel * dir < 0 && Math.abs(rel) > 40) {
       const j = (-(1 + RESTITUTION) * rel) / 2;
       if (Math.abs(rel) > 120) impact(Math.abs(rel));
-      if (!aKin) {
-        a.vx += j;
-        a.va += j * 0.002;
-      }
-      if (!bKin) {
-        b.vx -= j;
-        b.va -= j * 0.002;
-      }
+      if (!aKin) a.vx += j;
+      if (!bKin) b.vx -= j;
     }
   } else {
     const dir = a.y + a.h / 2 < b.y + b.h / 2 ? -1 : 1;
@@ -178,14 +167,8 @@ function resolvePair(a, b) {
     if (rel * dir < 0 && Math.abs(rel) > 40) {
       const j = (-(1 + RESTITUTION) * rel) / 2;
       if (Math.abs(rel) > 120) impact(Math.abs(rel));
-      if (!aKin) {
-        a.vy += j;
-        a.va += j * 0.002;
-      }
-      if (!bKin) {
-        b.vy -= j;
-        b.va -= j * 0.002;
-      }
+      if (!aKin) a.vy += j;
+      if (!bKin) b.vy -= j;
     }
   }
 }
@@ -202,25 +185,12 @@ function step(now) {
       b.vy = clampDragV((dragTarget.y - b.y) / Math.max(dt, 0.001));
       b.x = dragTarget.x;
       b.y = dragTarget.y;
-      // dangle: ease toward a small tilt that follows the drag direction
-      const hang = Math.max(-0.3, Math.min(0.3, b.vx * 0.0004));
-      b.angle += (hang - b.angle) * 0.15;
-      b.va = 0;
       continue;
     }
     if (b.sleeping) continue;
     b.vy += GRAVITY * dt;
     b.x += b.vx * dt;
     b.y += b.vy * dt;
-    b.angle += b.va * dt;
-    b.va *= 0.995;
-    if (b.angle > MAX_TILT) {
-      b.angle = MAX_TILT;
-      if (b.va > 0) b.va = 0;
-    } else if (b.angle < -MAX_TILT) {
-      b.angle = -MAX_TILT;
-      if (b.va < 0) b.va = 0;
-    }
   }
 
   for (let pass = 0; pass < SOLVER_PASSES; pass += 1) {
@@ -238,24 +208,18 @@ function step(now) {
         b.x = EDGE;
         if (b.vx < -120) impact(-b.vx);
         b.vx = -b.vx * RESTITUTION;
-        b.va += b.vy * 0.0018;
       } else if (b.x > right) {
         b.x = right;
         if (b.vx > 120) impact(b.vx);
         b.vx = -b.vx * RESTITUTION;
-        b.va -= b.vy * 0.0018;
       }
       if (b.y >= floor) {
         b.y = floor;
         if (Math.abs(b.vy) > 220) {
           impact(Math.abs(b.vy));
           b.vy = -b.vy * RESTITUTION;
-          b.va += b.vx * 0.0018;
         } else {
           b.vy = 0;
-          // grounded: bleed off spin and settle mostly flat
-          b.va *= 0.85;
-          b.angle *= 0.96;
         }
         b.vx *= GROUND_FRICTION;
       } else if (b.y < EDGE) {
@@ -282,16 +246,11 @@ function step(now) {
     if (b.sleeping) continue;
     const speed = Math.hypot(b.vx, b.vy);
     if (speed < SLEEP_SPEED) {
-      // nearly at rest (floor or pile): bleed off spin and settle mostly
-      // flat, whatever the body is resting on
-      b.va *= 0.8;
-      b.angle *= 0.9;
       b.stillFrames += 1;
       if (b.stillFrames >= SLEEP_FRAMES) {
         b.sleeping = true;
         b.vx = 0;
         b.vy = 0;
-        b.va = 0;
         continue;
       }
     } else {

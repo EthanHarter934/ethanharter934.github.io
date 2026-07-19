@@ -8,7 +8,7 @@ export const profile = {
   email: 'hartere@oregonstate.edu',
   stats: [
     { value: '3.95', label: 'gpa @ osu' },
-    { value: '2×', label: 'hackathon 1st place' },
+    { value: '2×', label: '1st place wins' },
     { value: '2027', label: 'graduating june' },
   ],
 };
@@ -139,9 +139,9 @@ export const projects = [
     name: 'Social Media Stance Analysis',
     stack: 'Python · BERTweet',
     year: '2025',
-    image: '/Images/Work In Progress.png',
-    alt: 'Social media stance analysis, work in progress',
-    githubUrl: 'https://github.com/EthanHarter934',
+    image: '/Images/stance-analysis.svg',
+    alt: 'Abstract network graph representing clustered stance groups in social media discourse',
+    paperUrl: null,
     detTag: 'stance_inferred',
     description: [
       'Ongoing research with a team looking at how people actually talk about gun control on Twitter. We use ',

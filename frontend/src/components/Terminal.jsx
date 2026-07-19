@@ -96,6 +96,12 @@ export default function Terminal({ onSend }) {
     if (body) body.scrollTop = body.scrollHeight;
   }, [bootedLines, typedChars, messages, loading, booted]);
 
+  const handleNewChat = () => {
+    if (loading) return;
+    setMessages([]);
+    inputRef.current?.focus({ preventScroll: true });
+  };
+
   const handleSend = async (event) => {
     event.preventDefault();
     const trimmed = input.trim();
@@ -139,6 +145,14 @@ export default function Terminal({ onSend }) {
       <div className="term-bar">
         <i /><i /><i className="hot" />
         <span className="term-name">session · ask m-1</span>
+        <button
+          type="button"
+          className="term-new-chat"
+          onClick={handleNewChat}
+          disabled={loading || messages.length === 0}
+        >
+          + new chat
+        </button>
         <span className="term-hint">enter to send</span>
       </div>
 
@@ -162,7 +176,7 @@ export default function Terminal({ onSend }) {
           </span>
         )}
 
-        {booted && messages.length === 0 && (
+        {booted && (
           <div className="term-msg">
             <span className="who">m1&gt; </span>
             <span className="msg-text">{GREETING}</span>
