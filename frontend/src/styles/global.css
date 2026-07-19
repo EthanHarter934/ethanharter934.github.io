@@ -447,13 +447,15 @@ img {
   grid-template-columns: 1.02fr 0.98fr;
   gap: clamp(40px, 6vw, 80px);
   align-items: center;
-  transition:
-    grid-template-columns 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
-    gap 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* first chat send: the terminal takes the whole row and the copy column
-   collapses (its blocks have already been handed to the physics world) */
+   collapses (its blocks have already been handed to the physics world).
+   This snaps instantly rather than transitioning grid-template-columns/gap:
+   animating those forces the whole terminal to reflow on every frame, which
+   measurably janks (confirmed via Chrome's long-animation-frame timing).
+   Hero.jsx fakes the same growth with a compositor-only transform on
+   .term-flip-outer/.term-flip-inner instead. */
 .hero-inner.term-expanded {
   grid-template-columns: 0fr 1fr;
   gap: 0px;
@@ -504,6 +506,15 @@ img {
 .hero-terminal {
   position: relative;
   z-index: 10;
+}
+
+/* FLIP wrapper for the send-triggered expand (see Hero.jsx handleTerminalSend).
+   term-flip-inner counter-scales so the terminal's own content never
+   distorts, it just gets progressively revealed as term-flip-outer "grows".
+   overflow is only clipped for the transition's duration (.flip-clip, toggled
+   in JS) so .term's resting box-shadow isn't cropped the rest of the time. */
+.term-flip-outer.flip-clip {
+  overflow: hidden;
 }
 
 /* subtle corner button that undoes all the chaos */
@@ -686,8 +697,30 @@ img {
   text-transform: uppercase;
 }
 
-.term-bar .term-hint {
+.term-bar .term-new-chat {
   margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: rgba(138, 146, 155, 0.7);
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.term-bar .term-new-chat:hover:not(:disabled) {
+  color: #ede8dc;
+}
+
+.term-bar .term-new-chat:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.term-bar .term-hint {
+  margin-left: 10px;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.06em;
@@ -764,6 +797,12 @@ img {
 }
 
 .term-md {
+  display: inline;
+}
+
+/* react-markdown always wraps text in a block-level <p>, which would
+   otherwise start on its own line below the inline "m1>" prompt span */
+.term-md > p:first-child {
   display: inline;
 }
 

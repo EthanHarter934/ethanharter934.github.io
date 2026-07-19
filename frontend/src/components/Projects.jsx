@@ -47,11 +47,20 @@ function WorkCard({ project, index }) {
             <RichText segments={project.description} />
           </p>
 
-          <div className="work-links">
-            <a href={project.githubUrl} target="_blank" rel="noreferrer" className="work-link link-sweep">
-              <GitHubIcon /> view code <span className="arrow" aria-hidden="true">↗</span>
-            </a>
-          </div>
+          {(project.githubUrl || project.paperUrl) && (
+            <div className="work-links">
+              {project.githubUrl && (
+                <a href={project.githubUrl} target="_blank" rel="noreferrer" className="work-link link-sweep">
+                  <GitHubIcon /> view code <span className="arrow" aria-hidden="true">↗</span>
+                </a>
+              )}
+              {project.paperUrl && (
+                <a href={project.paperUrl} target="_blank" rel="noreferrer" className="work-link link-sweep">
+                  read paper <span className="arrow" aria-hidden="true">↗</span>
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </article>
     </Reveal>
