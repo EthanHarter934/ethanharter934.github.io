@@ -28,12 +28,14 @@ async function main() {
     execSync(`xcopy "${join(backendRoot, 'lambda')}" "${outDir}\\lambda\\" /S /I /Y`, { stdio: 'inherit' });
     execSync(`xcopy "${join(backendRoot, 'mcp-server')}" "${outDir}\\mcp-server\\" /S /I /Y`, { stdio: 'inherit' });
     execSync(`xcopy "${join(backendRoot, 'utils')}" "${outDir}\\utils\\" /S /I /Y`, { stdio: 'inherit' });
+    execSync(`xcopy "${join(backendRoot, 'middleware')}" "${outDir}\\middleware\\" /S /I /Y`, { stdio: 'inherit' });
   } else {
     cpSync(join(backendRoot, 'package.json'), join(outDir, 'package.json'));
     cpSync(join(backendRoot, 'config.js'), join(outDir, 'config.js'));
     cpSync(join(backendRoot, 'lambda'), join(outDir, 'lambda'), { recursive: true });
     cpSync(join(backendRoot, 'mcp-server'), join(outDir, 'mcp-server'), { recursive: true });
     cpSync(join(backendRoot, 'utils'), join(outDir, 'utils'), { recursive: true });
+    cpSync(join(backendRoot, 'middleware'), join(outDir, 'middleware'), { recursive: true });
   }
 
   console.log('Installing production dependencies (this may take a minute)...');
