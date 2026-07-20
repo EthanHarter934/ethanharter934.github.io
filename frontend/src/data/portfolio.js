@@ -4,7 +4,7 @@ export const profile = {
   lastName: 'Harter',
   title: 'Computer Science Student | AI Focus',
   school: 'Oregon State University',
-  photo: '/Images/Ethan Sunset Pic (1).jpg',
+  photo: '/Images/sunset.jpg',
   email: 'hartere@oregonstate.edu',
   stats: [
     { value: '3.95', label: 'gpa @ osu' },

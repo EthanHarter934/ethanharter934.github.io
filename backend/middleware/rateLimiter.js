@@ -30,8 +30,9 @@ function cleanExpiredEntries() {
   expiredIps.forEach((ip) => requestCounts.delete(ip));
 }
 
-export function rateLimiter(req, res, next) {
-  const clientIp = getClientIp(req);
+// Core sliding-window check, shared by the Express middleware below and
+// the Lambda handler (which has no req/res to hang middleware off of).
+export function checkRateLimit(clientIp) {
   const now = Date.now();
 
   // Periodically clean old entries to prevent memory leak
@@ -39,12 +40,7 @@ export function rateLimiter(req, res, next) {
     cleanExpiredEntries();
   }
 
-  // Initialize or get existing timestamps for this IP
-  if (!requestCounts.has(clientIp)) {
-    requestCounts.set(clientIp, []);
-  }
-
-  const timestamps = requestCounts.get(clientIp);
+  const timestamps = requestCounts.get(clientIp) || [];
   const windowStart = now - config.rateLimitWindowMs;
 
   // Remove timestamps outside the current window
@@ -52,21 +48,39 @@ export function rateLimiter(req, res, next) {
 
   // Check if limit exceeded
   if (recentRequests.length >= config.rateLimitMaxRequests) {
-    return res.status(429).json({
-      error: 'Too many requests',
+    return {
+      allowed: false,
       retryAfter: Math.ceil((recentRequests[0] + config.rateLimitWindowMs - now) / 1000),
-      message: `Rate limit exceeded. Max ${config.rateLimitMaxRequests} requests per ${config.rateLimitWindowMs / 1000} seconds.`,
-    });
+    };
   }
 
   // Add current request timestamp
   recentRequests.push(now);
   requestCounts.set(clientIp, recentRequests);
 
+  return {
+    allowed: true,
+    remaining: config.rateLimitMaxRequests - recentRequests.length,
+    reset: Math.ceil((recentRequests[0] + config.rateLimitWindowMs) / 1000),
+  };
+}
+
+export function rateLimiter(req, res, next) {
+  const clientIp = getClientIp(req);
+  const result = checkRateLimit(clientIp);
+
+  if (!result.allowed) {
+    return res.status(429).json({
+      error: 'Too many requests',
+      retryAfter: result.retryAfter,
+      message: `Rate limit exceeded. Max ${config.rateLimitMaxRequests} requests per ${config.rateLimitWindowMs / 1000} seconds.`,
+    });
+  }
+
   // Add rate limit info to response headers
   res.setHeader('X-RateLimit-Limit', config.rateLimitMaxRequests);
-  res.setHeader('X-RateLimit-Remaining', config.rateLimitMaxRequests - recentRequests.length);
-  res.setHeader('X-RateLimit-Reset', Math.ceil((recentRequests[0] + config.rateLimitWindowMs) / 1000));
+  res.setHeader('X-RateLimit-Remaining', result.remaining);
+  res.setHeader('X-RateLimit-Reset', result.reset);
 
   next();
 }

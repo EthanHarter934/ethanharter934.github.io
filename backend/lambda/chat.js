@@ -1,6 +1,9 @@
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 import { toolDefinitions, callTool } from '../mcp-server/index.js';
 import { resolveModelId } from '../utils/modelId.js';
+import { checkRateLimit } from '../middleware/rateLimiter.js';
+import { validateMessages } from '../middleware/validateChat.js';
+import config from '../config.js';
 
 // Haiku 4.5 is the cheapest current Claude model on Bedrock.
 // Newer models require a regional inference profile prefix (e.g. us., eu.).
@@ -111,17 +114,47 @@ export async function chat(messages) {
   return runConverseLoop(client, messages);
 }
 
+function getClientIp(event) {
+  return (
+    event.requestContext?.http?.sourceIp ||
+    event.headers?.['x-forwarded-for']?.split(',')[0]?.trim() ||
+    'unknown'
+  );
+}
+
 export const handler = async (event) => {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+  };
+
   try {
+    const clientIp = getClientIp(event);
+    const rateLimit = checkRateLimit(clientIp);
+
+    if (!rateLimit.allowed) {
+      return {
+        statusCode: 429,
+        headers: { ...headers, 'Retry-After': String(rateLimit.retryAfter) },
+        body: JSON.stringify({
+          error: 'Too many requests',
+          retryAfter: rateLimit.retryAfter,
+          message: `Rate limit exceeded. Max ${config.rateLimitMaxRequests} requests per ${config.rateLimitWindowMs / 1000} seconds.`,
+        }),
+      };
+    }
+
     const body =
       typeof event.body === 'string' ? JSON.parse(event.body) : event.body || event;
     const { messages = [] } = body;
 
-    if (!Array.isArray(messages) || messages.length === 0) {
+    const validation = validateMessages(messages);
+
+    if (!validation.valid) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'messages array is required' }),
+        headers,
+        body: JSON.stringify({ error: validation.error }),
       };
     }
 
@@ -129,10 +162,7 @@ export const handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers,
       body: JSON.stringify({ message: reply }),
     };
   } catch (error) {
@@ -140,10 +170,7 @@ export const handler = async (event) => {
 
     return {
       statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
+      headers,
       body: JSON.stringify({ error: error.message || 'Internal server error' }),
     };
   }

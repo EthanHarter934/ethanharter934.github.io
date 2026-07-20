@@ -18,8 +18,8 @@ export const config = {
   allowedOrigin: process.env.ALLOWED_ORIGIN || 'http://localhost:3000',
 
   // Rate Limiting
-  rateLimitWindowMs: 60 * 1000, // 1 minute
-  rateLimitMaxRequests: 20,
+  rateLimitWindowMs: 2 * 1000, // 2 seconds
+  rateLimitMaxRequests: 1,
 
   // Chat Validation
   maxMessageCount: 50,
