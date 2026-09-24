@@ -4,7 +4,7 @@ import { docClient, TABLE_NAME, PROFILE_PK } from '../db/dynamoClient.js';
 export const definition = {
   name: 'searchPortfolio',
   description:
-    'Search across all portfolio entities (projects, skills, experience, education) by keyword.',
+    'Search across all portfolio entities (projects, skills, experience, education, activities, awards) by keyword.',
   inputSchema: {
     type: 'object',
     properties: {

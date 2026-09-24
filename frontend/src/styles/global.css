@@ -1257,6 +1257,11 @@ img {
   min-width: 0;
 }
 
+/* an odd card count leaves the last card alone on its row; let it span */
+.ai-cell:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .ai-card {
   flex: 1;
   display: flex;

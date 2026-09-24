@@ -17,7 +17,7 @@ const BOOT_LINES = [
   { text: '  modeling ........... ok', cls: 'ok' },
   { text: '  language ........... ok', cls: 'ok' },
   { text: '  full-stack ......... ok', cls: 'ok' },
-  { text: '  gpa 3.95 ........... verified', cls: 'dim' },
+  { text: '  gpa 3.96 ........... verified', cls: 'dim' },
   { text: '  awards ............. 2x first place', cls: 'dim' },
   { text: '$ loading model ...... done', cls: 'cmd' },
   { text: '-> all layers online. say hello.', cls: 'result' },
