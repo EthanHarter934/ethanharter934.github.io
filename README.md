@@ -341,11 +341,11 @@ BUCKET=ethan-portfolio-frontend-${ACCOUNT_ID}
 aws s3 mb s3://${BUCKET} --region us-west-2
 
 # Upload frontend
-aws s3 sync frontend/dist/ s3://${BUCKET}/ --delete
+aws s3 sync frontend/dist/ s3://${BUCKET}/dist/ --delete
 ```
 
 8. **Create CloudFront distribution**:
-   - Origin: S3 bucket (with Origin Access Control)
+   - Origin: S3 bucket (with Origin Access Control), **Origin path `/dist`** (the site is uploaded under `dist/`)
    - Default root: `index.html`
    - Error pages: 403 & 404 → `/index.html` (status 200)
    - Viewer policy: Redirect HTTP to HTTPS
@@ -381,7 +381,8 @@ aws lambda update-function-code \
 **Frontend**:
 ```bash
 cd frontend && npm run build
-aws s3 sync dist/ s3://YOUR_BUCKET/ --delete
+# CloudFront's origin path is /dist — syncing to the bucket root with --delete takes the site down
+aws s3 sync dist/ s3://YOUR_BUCKET/dist/ --delete
 aws cloudfront create-invalidation \
   --distribution-id YOUR_DISTRIBUTION_ID \
   --paths "/*" \
@@ -531,8 +532,8 @@ See [OPTIMIZATION_PLAN.md](./OPTIMIZATION_PLAN.md#phase-4-testing--quality-assur
 ```env
 # AWS Configuration
 AWS_REGION=us-west-2
-AWS_ACCESS_KEY_ID=your_key
-AWS_SECRET_ACCESS_KEY=your_secret
+# Credentials: run `aws login` (or `aws configure`); the SDK picks them up.
+# Avoid static keys here: they override your CLI login and fail once rotated.
 
 # Database
 DYNAMO_TABLE_NAME=PortfolioData

@@ -24,7 +24,7 @@
    - `AWS_REGION`
    - `DYNAMO_TABLE_NAME`
    - `PROFILE_PK`
-   - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` (or use AWS SSO / `aws configure` instead)
+   - AWS credentials: run `aws login` (or `aws configure`) rather than putting static keys in `.env`; keys in `.env` override your CLI login and fail once rotated
    - `BEDROCK_MODEL_ID` (default: `anthropic.claude-haiku-4-5-20251001-v1:0` — prefixed automatically, e.g. `us.anthropic.claude-haiku-4-5-20251001-v1:0`)
    - `BEDROCK_MAX_TOKENS` (default: `1024` — caps response length to control cost)
 

@@ -294,13 +294,13 @@ BUCKET=ethan-portfolio-frontend-${ACCOUNT_ID}
 
 aws s3 mb s3://${BUCKET} --region us-west-2
 
-aws s3 sync frontend/dist/ s3://${BUCKET}/ --delete
+aws s3 sync frontend/dist/ s3://${BUCKET}/dist/ --delete
 ```
 
 ### CloudFront (Console)
 
 1. **CloudFront** → **Create distribution**
-2. Origin domain: your S3 bucket (not the website endpoint)
+2. Origin domain: your S3 bucket (not the website endpoint), with **Origin path** set to `/dist` (the site is uploaded under `dist/`)
 3. Origin access: **Origin access control settings (recommended)** → Create OAC
 4. Default root object: `index.html`
 5. Viewer protocol policy: **Redirect HTTP to HTTPS**
@@ -387,7 +387,8 @@ aws lambda update-function-code \
 
 ```bash
 cd frontend && npm run build
-aws s3 sync dist/ s3://YOUR_BUCKET/ --delete
+# CloudFront's origin path is /dist — syncing to the bucket root with --delete takes the site down
+aws s3 sync dist/ s3://YOUR_BUCKET/dist/ --delete
 aws cloudfront create-invalidation \
   --distribution-id YOUR_DISTRIBUTION_ID \
   --paths "/*"
