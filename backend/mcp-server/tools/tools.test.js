@@ -152,6 +152,13 @@ test('Filter skills by category', () => {
   if (skills[0].name !== 'Python') throw new Error('Wrong skill filtered');
 });
 
+// Test: getAwards is exposed to the chat model
+test('getAwards is registered as a tool', async () => {
+  const { toolDefinitions } = await import('../index.js');
+  const names = toolDefinitions.map((tool) => tool.toolSpec.name);
+  if (!names.includes('getAwards')) throw new Error(`getAwards missing from tools: ${names}`);
+});
+
 // Run tests
 async function runTests() {
   let passed = 0;

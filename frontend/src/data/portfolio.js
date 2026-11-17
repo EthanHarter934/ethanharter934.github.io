@@ -7,7 +7,7 @@ export const profile = {
   photo: '/Images/sunset.jpg',
   email: 'hartere@oregonstate.edu',
   stats: [
-    { value: '3.95', label: 'gpa @ osu' },
+    { value: '3.96', label: 'gpa @ osu' },
     { value: '2×', label: '1st place wins' },
     { value: '2027', label: 'graduating june' },
   ],
@@ -33,8 +33,10 @@ export const education = {
   institution: 'Oregon State University',
   date: 'Expected June 2027',
   degree: "Bachelor's in Computer Science, focus in AI",
-  gpa: '3.95 GPA',
+  gpa: '3.96 GPA',
   notableClasses: [
+    'Intro to AI',
+    'Intro to Applied Data Science',
     'Machine Learning & Data Mining',
     'Parallel Programming',
     'Operating Systems',
@@ -47,10 +49,16 @@ export const education = {
 
 export const skills = {
   languages: ['Python', 'JavaScript', 'HTML/CSS', 'SQL', 'C++', 'C#', 'C', 'Assembly', 'R', 'Java', 'TypeScript'],
-  tools: ['React', 'Node.js', 'Linux SSH Servers', 'MySQL', 'GitHub', 'VSCode', 'Unity', 'AWS', 'Docker', 'FastAPI'],
+  tools: ['Claude Code', 'AWS', 'React', 'Next.js', 'Node.js', 'Linux SSH Servers', 'MySQL', 'GitHub', 'VSCode', 'Unity', 'Docker', 'FastAPI'],
 };
 
 export const aiCapabilities = [
+  {
+    title: 'Directing AI Coding Agents',
+    description:
+      "At my Merlin's Minty Cards internship I directed Claude Code to build and ship a full-stack AWS sales platform the owners use at card shows. The AI wrote the code; I wrote the requirements, reviewed every design doc before code, and built the guardrails: 10 custom skills, 3 subagents, enforced test-first development, and a rules file that turns every mistake into a lasting check.",
+    chips: ['Claude Code', 'Skills & Subagents', 'TDD Guardrails', 'AWS CDK'],
+  },
   {
     title: 'LLM Integration & Agents',
     description:
@@ -78,6 +86,21 @@ export const aiCapabilities = [
 ];
 
 export const experience = [
+  {
+    title: "Merlin's Minty Cards, Software Engineering Intern",
+    date: 'June 2026 to September 2026',
+    description: [
+      'Directed ',
+      { highlight: 'Claude Code' },
+      ' to build and deploy a full-stack AWS sales platform for a Pokémon card business, ',
+      { highlight: 'speeding up transactions at shows by about 25%' },
+      '. I designed the AI workflow (',
+      { highlight: '10 custom skills, 3 subagents' },
+      ', and a self-updating rules file) and ran it serverless on ',
+      { highlight: 'AWS with CDK' },
+      ': Lambda, DynamoDB, CloudFront, Cognito, and Bedrock.',
+    ],
+  },
   {
     title: 'Bonneville Power Administration, ASE Internship',
     date: 'June 2021 to August 2021',
@@ -266,7 +289,8 @@ export const awards = [
 
 export const extracurriculars = [
   { title: 'OSU Artificial Intelligence Club', date: '2025 - present' },
-  { title: "OSU Men's Volleyball Club Officer", date: '2023 - present' },
+  { title: "OSU Men's Volleyball Club Vice President", date: '2023 - present' },
   { title: 'Chaos Club Volleyball', date: '2022-2023' },
+  { title: 'Rose City Rowing Club', date: '2020-2021' },
   { title: 'Grant High School Baseball', date: '2019-2022' },
 ];

@@ -3,9 +3,10 @@ import * as getSkills from './tools/getSkills.js';
 import * as getExperience from './tools/getExperience.js';
 import * as getEducation from './tools/getEducation.js';
 import * as getActivities from './tools/getActivities.js';
+import * as getAwards from './tools/getAwards.js';
 import * as searchPortfolio from './tools/searchPortfolio.js';
 
-const tools = [getProjects, getSkills, getExperience, getEducation, getActivities, searchPortfolio];
+const tools = [getProjects, getSkills, getExperience, getEducation, getActivities, getAwards, searchPortfolio];
 
 export const toolDefinitions = tools.map(({ definition }) => ({
   toolSpec: {
@@ -29,4 +30,4 @@ export async function callTool(name, input = {}) {
   return toolHandler(input);
 }
 
-export { getProjects, getSkills, getExperience, getEducation, getActivities, searchPortfolio };
+export { getProjects, getSkills, getExperience, getEducation, getActivities, getAwards, searchPortfolio };
